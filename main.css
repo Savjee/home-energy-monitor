@@ -1,0 +1,12 @@
+.dygraph-legend{
+/*	left: 60px !important;
+	right: 0px;
+	top: -17px !important;
+	width: 100%;*/
+}
+
+.card{
+	display:inline-block;
+	width: 33%;
+	float:left;
+}

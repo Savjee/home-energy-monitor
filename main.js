@@ -1,4 +1,6 @@
-const BASE_URL = 'https://api.thingspeak.com/channels/662755/fields/1.json?api_key=R6JPGF9DZBGJ7AS4&results=5760';
+const BASE_URL = 'https://api.thingspeak.com/channels/662755/fields/1.json?api_key=R6JPGF9DZBGJ7AS4';
+let data = [];
+let chart;
 
 function toggleLoadingIndicator(visible){
 	const $el = document.getElementById('loading-indicator');
@@ -10,7 +12,7 @@ function toggleLoadingIndicator(visible){
 	}
 }
 
-function fetchData(){
+function fetchData(entries = 10){
 	return new Promise((resolve, reject) => {
 		toggleLoadingIndicator(true);
 		const xhr = new XMLHttpRequest();
@@ -19,8 +21,10 @@ function fetchData(){
 
 			if (xhr.status >= 200 && xhr.status < 300) {
 				const json = JSON.parse(xhr.response);
+				processData(json);
+
 				toggleLoadingIndicator(false);
-				return resolve(json);
+				return resolve();
 			} else {
 				console.log('The request failed!');
 				toggleLoadingIndicator(false);
@@ -28,7 +32,7 @@ function fetchData(){
 			}
 		};
 
-		xhr.open('GET', BASE_URL);
+		xhr.open('GET', BASE_URL + '&results=' + entries);
 		xhr.send();
 	});
 }
@@ -38,21 +42,41 @@ function processData(rawData){
 		return;
 	}
 
-	const processedData = [];
-
 	for(const entry of rawData.feeds){
-		processedData.push([
-			new Date(entry.created_at),
-			parseFloat(entry.field1)
+		const date = new Date(entry.created_at);
+		const watts = parseFloat(entry.field1);
+
+		// If this entry alredy exists, stop processing it!
+		if(data.find(el => el[0].getTime() === date.getTime())){
+			continue;
+		}
+
+		data.push([
+			date,
+			watts,
 		]);
 	}
 
-	return processedData;
+	// Update the current, max and min values
+	const $current = document.getElementById('usage-current');
+	const $min = document.getElementById('usage-min');
+	const $max = document.getElementById('usage-max');
+
+	$max.innerHTML = Math.max.apply(Math, data.map(i => i[1])) + ' W';
+	$min.innerHTML = Math.min.apply(Math, data.map(i => i[1])) + ' W';
+	$current.innerHTML = data[data.length-1][1] + ' W';
+
+	if(chart){
+		chart.updateOptions({
+			file: data,
+		});
+	}
 }
 
 /**
  * Between 21:00 and 06:00 there is a special "night hour" tarif for
- * electricity. Reflect that by highlighting these areas in grey.
+ * electricity. Also all hours on Saturday and Sunday. Reflect that 
+ * by highlighting these areas in grey.
  */
 function highlightNightHours(canvas, area, chart){
 	let foundStart = false;
@@ -96,18 +120,20 @@ function highlightNightHours(canvas, area, chart){
 async function initChart(){
 
 	// First fetch some data from ThingSpeak
-	const rawData = await fetchData();
-	const processedData = processData(rawData);
-
-	console.log(processedData);
+	await fetchData(5760);
 
 	// Initialize the chart
-	const chart = new Dygraph(
+	chart = new Dygraph(
 	    document.getElementById("graphdiv"),
-	    processedData,
+	    data,
 	    {
+            legend: 'always',
 	    	labels: ['Timestamp', 'Watts'],
 	    	underlayCallback: highlightNightHours,
 	    }
   	);
+
+  	setInterval(async () => {
+  		await fetchData(10);
+  	}, 30 * 1000);
 }
