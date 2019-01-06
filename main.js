@@ -61,16 +61,33 @@ function processData(rawData){
 	const $current = document.getElementById('usage-current');
 	const $min = document.getElementById('usage-min');
 	const $max = document.getElementById('usage-max');
+	const $kwh = document.getElementById('usage-kwh');
 
 	$max.innerHTML = Math.max.apply(Math, data.map(i => i[1])) + ' W';
 	$min.innerHTML = Math.min.apply(Math, data.map(i => i[1])) + ' W';
 	$current.innerHTML = data[data.length-1][1] + ' W';
+	$kwh.innerHTML = calculateKWH() + ' kWh';
 
 	if(chart){
 		chart.updateOptions({
 			file: data,
 		});
 	}
+}
+
+function calculateKWH(){
+	let total = 0;
+
+	for(let i = 0; i < data.length-1; i++){
+		const current = data[i];
+		const next = data[i+1];
+
+		const seconds = (next[0].getTime() - current[0].getTime()) / 1000;
+
+		total += (current[1] * seconds * (1/(60*60))) / 1000;
+	}
+
+	return Math.round(total);
 }
 
 /**
