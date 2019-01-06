@@ -130,7 +130,17 @@ function highlightNightHours(canvas, area, chart){
 
 			foundStart = false;
 			foundEnd = false;
+			startHighlight = null;
+			endHighlight = null;
 		}
+	}
+
+	// It could be that we found a start but not an end (in that case we're
+	// actively in night hours and we should draw these as well!)
+	if(foundStart && foundEnd === false){
+		const lastPosition = chart.toDomXCoord(chart.file_[chart.file_.length -1][0]);
+		const width = lastPosition - startHighlight;
+		canvas.fillRect(startHighlight, area.y, width, area.h);
 	}
 }
 
