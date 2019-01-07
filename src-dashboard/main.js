@@ -102,30 +102,31 @@ function highlightNightHours(canvas, area, chart){
 	let startHighlight = null;
 	let endHighlight = null;
 
+	canvas.fillStyle = "#efefef";
+
+
 	for(const entry of chart.file_){
 		const date = entry[0];
 
-		// Between 00:00 and 06:00
-		if((date.getHours() >= 21 && date.getHours() <= 23) ||
-			(date.getHours() >= 0 && date.getHours() <= 5)){
+		// Assume this is also going to be our last item to highlight
+		endHighlight = chart.toDomXCoord(date);
 
-			if(foundStart === false){
-				foundStart = true;
-				startHighlight = chart.toDomXCoord(date);
-			}
-
-			endHighlight = chart.toDomXCoord(date);
-		}else{
-			if(foundStart === true && foundEnd === false){
-				foundEnd = true;
-				endHighlight = chart.toDomXCoord(date);
-			}
+		if(foundStart === false && isNightTarif(date)){
+			// We now found our start!
+			foundStart = true;
+			startHighlight = chart.toDomXCoord(date);
 		}
 
+		// If this entry is not night tarif, but we did find the start
+		// before then this is the end!
+		if(foundStart === true && isNightTarif(date) === false){
+			foundEnd = true;
+		}
+
+		// If we found both, draw them!
 		if(foundStart === true && foundEnd === true){
 			const width = endHighlight - startHighlight;
 
-			canvas.fillStyle = "#efefef";
 			canvas.fillRect(startHighlight, area.y, width, area.h);
 
 			foundStart = false;
@@ -142,6 +143,23 @@ function highlightNightHours(canvas, area, chart){
 		const width = lastPosition - startHighlight;
 		canvas.fillRect(startHighlight, area.y, width, area.h);
 	}
+}
+
+/**
+ * Checks if a given date object is within night tarif or not.
+ * For us that is between 21:00 and 06:00 and every weekend day.
+ */
+function isNightTarif(dateObj){
+	if((dateObj.getHours() >= 21 && dateObj.getHours() <= 23) ||
+		(dateObj.getHours() >= 0 && dateObj.getHours() <= 5)){
+		return true;
+	}
+
+	if(dateObj.getDay() === 0 || dateObj.getDay() === 6){
+		return true;
+	}
+
+	return false;
 }
 
 async function initChart(){
