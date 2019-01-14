@@ -178,6 +178,28 @@ async function initChart(){
 	    }
   	);
 
+  	// Add callbacks to the buttons "yesterday" and "today"
+  	document.getElementById('btnYesterday').addEventListener('click', () => {
+  		const start = new Date();
+  		start.setDate(start.getDate() - 1);
+  		start.setHours(0);
+  		start.setMinutes(0);
+
+  		chart.updateOptions({
+  			dateWindow: [start.getTime(), start.getTime() + 24*60*60*1000]
+  		})
+  	});
+
+  	document.getElementById('btnToday').addEventListener('click', () => {
+  		const start = new Date();
+  		start.setHours(0);
+  		start.setMinutes(0);
+
+  		chart.updateOptions({
+  			dateWindow: [start.getTime(), start.getTime() + 24*60*60*1000]
+  		})
+  	});
+
   	setInterval(async () => {
   		await fetchData(10);
   	}, 30 * 1000);
