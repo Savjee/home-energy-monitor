@@ -59,14 +59,7 @@ function processData(rawData){
 
 	// Update the current, max and min values
 	const $current = document.getElementById('usage-current');
-	const $min = document.getElementById('usage-min');
-	const $max = document.getElementById('usage-max');
-	const $kwh = document.getElementById('usage-kwh');
-
-	$max.innerHTML = Math.max.apply(Math, data.map(i => i[1])) + ' W';
-	$min.innerHTML = Math.min.apply(Math, data.map(i => i[1])) + ' W';
 	$current.innerHTML = data[data.length-1][1] + ' W';
-	$kwh.innerHTML = calculateKWH() + ' kWh';
 
 	if(chart){
 		chart.updateOptions({
@@ -75,19 +68,69 @@ function processData(rawData){
 	}
 }
 
-function calculateKWH(){
+/**
+ * Calculates the consumed kWh based on the given
+ * dataset. More accurate when interval of measurements
+ * is higher.
+ */
+function calculateKWH(dataset){
 	let total = 0;
 
-	for(let i = 0; i < data.length-1; i++){
-		const current = data[i];
-		const next = data[i+1];
+	for(let i = 0; i < dataset.length-1; i++){
+		const current = dataset[i];
+		const next = dataset[i+1];
 
 		const seconds = (next[0].getTime() - current[0].getTime()) / 1000;
 
 		total += (current[1] * seconds * (1/(60*60))) / 1000;
 	}
 
-	return Math.round(total);
+	return total;
+}
+
+/**
+ * Calculates the min, max and used kwh based of the highlighted
+ * range in the chart. If nothing was highlighted, we make a
+ * complete overview
+ */
+function getMetricsForSelectedRange(chart, initial_draw){
+	let startDate = 0;
+	let endDate = Number.MAX_SAFE_INTEGER;
+
+	if(chart.dateWindow_){
+		startDate = chart.dateWindow_[0];
+		endDate = chart.dateWindow_[1];
+	}
+
+	// Extract the data between start & end date
+	const dataInScope = data.filter(
+		el => el[0] > startDate && el[0] < endDate
+	);
+
+	return {
+		min: Math.min.apply(Math, dataInScope.map(i => i[1])),
+		max: Math.max.apply(Math, dataInScope.map(i => i[1])),
+		current: 0,
+		usage: calculateKWH(dataInScope),
+	}
+}
+
+/**
+ * Is called by Dygraphs when the user has selected a range in
+ * the chart. We then have to update the metrics for the newly
+ * selected range.
+ */
+function updateMetricsForSelectedRange(chart, initial_draw){
+	const metrics = getMetricsForSelectedRange(chart, initial_draw);
+
+	// const $current = document.getElementById('usage-current');
+	const $min = document.getElementById('usage-min');
+	const $max = document.getElementById('usage-max');
+	const $kwh = document.getElementById('usage-kwh');
+
+	$max.innerHTML = metrics.max;
+	$min.innerHTML = metrics.min;
+	$kwh.innerHTML = parseFloat(metrics.usage).toFixed(2) + ' kWh';
 }
 
 /**
@@ -175,6 +218,7 @@ async function initChart(){
             legend: 'always',
 	    	labels: ['Timestamp', 'Watts'],
 	    	underlayCallback: highlightNightHours,
+	    	drawCallback: updateMetricsForSelectedRange,
 	    }
   	);
 
