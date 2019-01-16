@@ -99,7 +99,7 @@ resources:
           AwsIotSqlVersion: "2016-03-23"
           Description: "Forwards incoming sensor messages to DynamoDB for analysis"
           RuleDisabled: false
-          Sql: "SELECT *, deviceId as primarykey, \"reading-\" + timestamp() as sortkey, ((timestamp() / 1000) + 2592000) as ttl"
+          Sql: "SELECT *, deviceId as primarykey, parse_time(\"'reading-'yyyyMMdd-HHmmss\", timestamp()) as sortkey, (timestamp()/1000) as raw_timestamp, ((timestamp() / 1000) + 2592000) as ttl"
 
     ###
     # Role that allows the IoT Topic Rule to write items to our
