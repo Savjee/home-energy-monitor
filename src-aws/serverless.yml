@@ -1,0 +1,198 @@
+service: xd-home-energy-monitor
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: prod
+  region: eu-west-1
+  profile: serverless-personal
+  memorySize: 256
+  deploymentBucket:
+    name: "xd-serverless-deployments"
+
+  stackTags:
+    client: "xd-home-energy-monitor"
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+        # - dynamodb:Scan
+        # - dynamodb:UpdateItem
+      Resource: !GetAtt [dynamoDataStore, Arn]
+
+resources:
+  Resources:
+
+    ###
+    # S3 Bucket to store daily/monthly files containing all raw measurements.
+    # Used to batch data up, reduce load on DynamoDB, reduce costs and allow
+    # for fasting charting of our data with Dygraphs.
+    ###
+    datastoreReadings:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-datastore
+
+    ###
+    # DynamoDB table that stores recent raw messages from the devices
+    # as well as computed usage information per sensor, per day, per month.
+    ###
+    dynamoDataStore:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}
+        AttributeDefinitions:
+          - AttributeName: "primarykey"
+            AttributeType: S
+          - AttributeName: "sortkey"
+            AttributeType: S
+        KeySchema:
+          - AttributeName: "primarykey"
+            KeyType: HASH
+          - AttributeName: "sortkey"
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    ###
+    # This IoT rule takes incoming messages and stores them straight
+    # into DynamoDB with the current timestamp (when we received the 
+    # message) as well as a calculated TTL for the item (30 days)
+    ###
+    iotRule:
+      Type: AWS::IoT::TopicRule
+      Properties:
+        TopicRulePayload:
+          Actions:
+            - 
+              DynamoDBv2:
+                PutItem:
+                  TableName: ${self:service}
+                RoleArn: !GetAtt [iotRuleAllowDynamoWrites, Arn]
+          AwsIotSqlVersion: "2016-03-23"
+          Description: "Forwards incoming sensor messages to DynamoDB for analysis"
+          RuleDisabled: false
+          Sql: "SELECT *, deviceId as primarykey, \"reading-\" + timestamp() as sortkey, ((timestamp() / 1000) + 2592000) as ttl"
+
+    ###
+    # Role that allows the IoT Topic Rule to write items to our
+    # DynamoDB table (and only that table)
+    ###
+    iotRuleAllowDynamoWrites:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Principal: 
+                Service: 
+                  - "iot.amazonaws.com"
+              Action: 
+                - "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          -
+            PolicyName: ${self:service}-firehose-role
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement: 
+                - Effect: "Allow"
+                  Action:
+                    - "dynamodb:PutItem"
+                  Resource: !GetAtt [dynamoDataStore, Arn]
+
+    # RootRole: 
+    #   Type: "AWS::IAM::Role"
+    #   Properties: 
+    #     AssumeRolePolicyDocument: 
+    #       Version: "2012-10-17"
+    #       Statement: 
+    #         - 
+    #           Effect: "Allow"
+    #           Principal: 
+    #             Service: 
+    #               - "ec2.amazonaws.com"
+    #           Action: 
+    #             - "sts:AssumeRole"
+    #     Path: "/"
+
+    # kinesisRole:
+    #   Type: AWS::IAM::Role
+    #   Properties:
+    #     AssumeRolePolicyDocument: 
+    #       Version: "2012-10-17"
+    #       Statement: 
+    #         - 
+    #           Effect: "Allow"
+    #           Principal: 
+    #             Service: 
+    #               - "firehose.amazonaws.com"
+    #           Action: 
+    #             - "sts:AssumeRole"
+    #     Path: "/"
+    #     Policies:
+    #       -
+    #         PolicyName: ${self:service}-firehose-role
+    #         PolicyDocument:
+    #           Version: "2012-10-17"
+    #           Statement: 
+    #             - Effect: "Allow"
+    #               Action: 
+    #                 - "glue:GetTableVersions"
+    #               Resource: "*"
+    #             - Effect: "Allow"
+    #               Action:
+    #                 - "s3:AbortMultipartUpload"
+    #                 - "s3:GetBucketLocation"
+    #                 - "s3:GetObject"
+    #                 - "s3:ListBucket"
+    #                 - "s3:ListBucketMultipartUploads"
+    #                 - "s3:PutObject"
+    #               Resource:
+    #                 - "arn:aws:s3:::${self:service}-datastore"
+    #                 - "arn:aws:s3:::${self:service}-datastore/*"
+    #                 - "arn:aws:s3:::%FIREHOSE_BUCKET_NAME%"
+    #                 - "arn:aws:s3:::%FIREHOSE_BUCKET_NAME%/*"
+    #             - Effect: "Allow"
+    #               Action:
+    #                 - "logs:PutLogEvents"
+    #               Resource: "arn:aws:logs:eu-west-1:567406759239:log-group:/aws/kinesisfirehose/test:log-stream:*"
+    #             - Effect: "Allow"
+    #               Action:
+    #                 - "kinesis:DescribeStream"
+    #                 - "kinesis:GetShardIterator"
+    #                 - "kinesis:GetRecords"
+    #               Resource: "arn:aws:kinesis:eu-west-1:567406759239:stream/%FIREHOSE_STREAM_NAME%"
+
+    # kinesisFirehoseStream: 
+    #   Type: AWS::KinesisFirehose::DeliveryStream
+    #   Properties: 
+    #     DeliveryStreamName: ${self:service}-stream
+    #     DeliveryStreamType: DirectPut
+    #     S3DestinationConfiguration:
+    #       # BucketARN: arn:aws:s3:::${self:service}-datastore
+    #       BucketARN:
+    #         Fn::GetAtt: 
+    #         - datastoreReadings
+    #         - Arn
+
+    #       Prefix: readings/
+    #       BufferingHints:
+    #         IntervalInSeconds: 900
+    #         SizeInMBs: 10
+    #       CompressionFormat: GZIP
+    #       RoleARN:
+    #         Fn::GetAtt: 
+    #         - kinesisRole
+    #         - Arn
+
