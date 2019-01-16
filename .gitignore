@@ -1,2 +1,3 @@
 .DS_Store
 src-aws/.serverless
+src-esp32/.vscode
