@@ -43,6 +43,7 @@ functions:
           rate: cron(0 2 * * ? *)          
 
 resources:
+  Description: Monitoring home energy usage over time
   Resources:
 
     ###
