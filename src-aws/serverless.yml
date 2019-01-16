@@ -24,6 +24,24 @@ provider:
         # - dynamodb:UpdateItem
       Resource: !GetAtt [dynamoDataStore, Arn]
 
+    - Effect: "Allow"
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: 
+        - !GetAtt [datastoreReadings, Arn]
+        - !Join ['', [!GetAtt [datastoreReadings, Arn], '/*']]
+
+functions:
+  dailyDataArchive:
+    handler: functions/cron-rotate-daily.handler
+    description: Archive data that was generated yesterday to S3
+    timeout: 30
+    events:
+      - schedule:
+          description: "Archive the data generated yesterday to S3"
+          rate: cron(0 2 * * ? *)          
+
 resources:
   Resources:
 
