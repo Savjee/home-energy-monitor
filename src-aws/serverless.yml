@@ -83,6 +83,10 @@ resources:
     # This IoT rule takes incoming messages and stores them straight
     # into DynamoDB with the current timestamp (when we received the 
     # message) as well as a calculated TTL for the item (30 days)
+    # 
+    # WARNING: if we update this, the name of the rule will change
+    # and then the iotPolicyForDevices should also be changed to
+    # reflect it!
     ###
     iotRule:
       Type: AWS::IoT::TopicRule
@@ -103,6 +107,39 @@ resources:
                   parse_time("'reading-'yyyyMMdd-HHmmss", timestamp()) as sortkey,
                   (timestamp()/1000) as raw_timestamp, 
                   ((timestamp() / 1000) + 2592000) as ttl
+
+    ###
+    # Policy that defines what each sensor is allowed to do. On basic
+    # level it should be allowed to publish directly to the rule
+    # topic. We also only allow a device to connect if the used
+    # certificate is attached to the thing that is trying to connect.
+    ###
+    iotPolicyForDevices:
+      Type: AWS::IoT::Policy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Action:
+                - "iot:Connect"
+              Resource: "*"
+              Condition:
+                Bool:
+                  "iot:Connection.Thing.IsAttached": [true]
+            -
+              Effect: "Allow"
+              Action:
+                - "iot:Publish"
+              Resource: 
+                - Fn::Join:
+                   - ""
+                   - - "arn:aws:iot:"
+                     - Ref: AWS::Region
+                     - ":"
+                     - Ref: AWS::AccountId
+                     - ":topic/***REMOVED***"
 
     ###
     # Role that allows the IoT Topic Rule to write items to our
