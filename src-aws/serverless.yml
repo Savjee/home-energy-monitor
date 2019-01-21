@@ -30,6 +30,11 @@ provider:
         - !GetAtt [datastoreReadings, Arn]
         - !Join ['', [!GetAtt [datastoreReadings, Arn], '/*']]
 
+package:
+  individually: true
+  exclude:
+    - functions/graphql/node_modules/**
+
 functions:
   dailyDataArchive:
     handler: functions/cron-rotate-daily.handler
@@ -38,7 +43,14 @@ functions:
     events:
       - schedule:
           description: "Archive the data generated yesterday to S3"
-          rate: cron(0 2 * * ? *)          
+          rate: cron(0 2 * * ? *)
+
+  graphql:
+    description: GraphQL endpoint to query readings from devices
+    handler: functions/graphql/graphql.handler
+    package:
+      include:
+        - functions/graphql/node_modules/**
 
 resources:
   Description: Monitoring home energy usage over time
