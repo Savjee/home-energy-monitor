@@ -1,31 +1,9 @@
 'use strict';
-const { dynamoDocClient, s3 } = require('../core/aws-connections');
+const { dynamoDocClient } = require('../core/aws-connections');
 const { config } = require('../core/config');
+const { getYesterdayDate, writeToS3, calculateKWH } = require('../core/helpers');
 
 const deviceName = 'test';
-
-/**
- * Returns yesterday's date a string in the form:
- * 20180120. This is used to efficiently query the
- * readings from the rangekey in DynamoDB.
- */
-function getYesterdayDateAsString(){
-    const yesterday = new Date();
-    yesterday.setUTCHours(0,0,0,0);
-    yesterday.setDate(yesterday.getDate() -1);
-
-    const string = yesterday
-    			.toISOString()
-    			.substring(0,10)
-    			.replace(/-/g, '');
-
-    return {
-    	string: string,
-    	year: string.substring(0,4),
-    	month: string.substring(4,6),
-    	day: string.substring(6,8)
-    }
-}
 
 /**
  * Fetches all of yesterday's readings of a certain 
@@ -36,7 +14,7 @@ async function fetchYesterdaysData(){
     console.time(timerLabel);
 
     try{
-        const prefix = 'reading-' + getYesterdayDateAsString().string;
+        const prefix = 'reading-' + getYesterdayDate().string;
 
         const data = await dynamoDocClient.query({
             TableName : config.dynamoDb.table,
@@ -95,12 +73,53 @@ function convertDataToCSV(data){
 	return output;
 }
 
-function writeToS3(filename, contents){
-	return s3.putObject({
-        Body: contents,
-        Bucket: config.s3.bucket,
-        Key: filename
-    }).promise();
+function calculateKwhSummary(csvData){
+    // Transform the data
+    const measurements = [];
+
+    for(const line of csvData.split('\n')){
+        if(line === '') continue;
+
+        const parts = line.split(',');
+
+        if(parts[0] === 'Timestamp') continue;
+
+        measurements.push(
+            [new Date(parseInt(parts[0])), parseInt(parts[1])]
+        );
+    }
+
+    // Calculate the usage
+    return calculateKWH(measurements);
+}
+
+async function writeUsageToDynamoDB(usageObj){
+    const timerLabel = '[PERF] Write daily summary to DynamoDB';
+    console.time(timerLabel);
+
+    try{
+        const key = deviceName;
+        const sortkey = 'summary-day-' + getYesterdayDate().string;
+
+        const data = await dynamoDocClient.put({
+            TableName : config.dynamoDb.table,
+            Item: {
+                primarykey: key,
+                sortkey: sortkey,
+                usage: usageObj
+            }
+        }).promise();
+
+        console.timeEnd(timerLabel);
+        return data;
+    }catch(e){
+        console.log('Error writing daily usage to DynamoDB:');
+        console.log(e);
+
+        // To prevent the application from crashing completely, we
+        // return an valid DynamoDB result object with no entries.
+        return false
+    }
 }
 
 module.exports.handler = async(event, context, callback) => {
@@ -109,8 +128,12 @@ module.exports.handler = async(event, context, callback) => {
 	// Convert to CSV
 	const csv = convertDataToCSV(data);
 
-	const time = getYesterdayDateAsString();
+	const time = getYesterdayDate();
 
 	// Write to S3
 	await writeToS3(`archived-readings/${deviceName}/${time.year}/${time.month}/${time.string}.csv`, csv);
+
+    // Calculate the kWh consumed & write it to DynamoDB
+    const usageData = calculateKwhSummary(csv);
+    await writeUsageToDynamoDB(usageData);
 };

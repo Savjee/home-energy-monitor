@@ -33,9 +33,7 @@ provider:
 functions:
   dailyDataArchive:
     handler: functions/cron-rotate-daily.handler
-    description: >-
-      Archive data that was generated yesterday to S3 and 
-      calculate usage aggregates to store in DynamoDB
+    description: Archive and aggregate yesterday's data to S3 and DynamoDB
     timeout: 30
     events:
       - schedule:
