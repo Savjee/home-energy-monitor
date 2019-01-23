@@ -10,6 +10,9 @@ provider:
   deploymentBucket:
     name: "xd-serverless-deployments"
 
+  apiGateway:
+    minimumCompressionSize: 1024
+
   stackTags:
     client: "xd-home-energy-monitor"
 
@@ -51,6 +54,10 @@ functions:
     package:
       include:
         - functions/graphql/node_modules/**
+    events:
+      - http:
+          path: graphql
+          method: get
 
 resources:
   Description: Monitoring home energy usage over time
