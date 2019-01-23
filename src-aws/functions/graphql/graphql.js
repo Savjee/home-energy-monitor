@@ -1,17 +1,22 @@
 const { graphql, buildSchema } = require('graphql');
-const {getYesterdayDate} = require('../../core/helpers');
-// const { dynamoDocClient, s3 } = require('../../core/aws-connections');
-// const { config } = require('../../core/config');
+const { dynamoDocClient, s3 } = require('../../core/aws-connections');
+const { config } = require('../../core/config');
+const { getYesterdayDate, 
+        getTodaysDate, 
+        getReadingsFromDynamoDBSince, 
+        parseDynamoDBItemsToCSV } = require('../../core/helpers');
+
+const deviceName = 'test';
+
 
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
   type Query {
-
-    # Test
     usageData(startDate: Int!, endDate: Int!): [Reading]!
 
-    # Test 2
-    realtime(startTimestamp: Int!): [Reading]!
+    realtime(sinceTimestamp: Int!): [Reading]!
+
+    readings(startDate: Int!, endDate: Int!): [Reading]!
   }
 
   type Reading {
@@ -20,74 +25,43 @@ const schema = buildSchema(`
   }
 `);
 
-// function test(){
-//   const timerLabel = '[PERF] Get history data';
-//   console.time(timerLabel);
-
-//   try{
-//       const prefix = 'reading-' + getYesterdayDateAsString().string;
-
-//       const data = await dynamoDocClient.query({
-//           TableName : config.dynamoDb.table,
-//           KeyConditionExpression: '#key = :key and begins_with(#sortKey,:prefix)',
-//           ScanIndexForward: true, // DESC order
-//           ConsistentRead: false,
-//           ExpressionAttributeNames:{
-//               '#key': 'primarykey',
-//               '#sortKey': 'sortkey',
-//           },
-//           ExpressionAttributeValues: {
-//               ':key': deviceName,
-//               ':prefix': prefix
-//           },
-//       }).promise();
-
-//       console.timeEnd(timerLabel);
-//       console.log('Item count for yesterday', data.Items.length);
-//       return data;
-//   }catch(e){
-//       console.log('Error fetching historical data');
-//       console.log(e);
-
-//       // To prevent the application from crashing completely, we
-//       // return an valid DynamoDB result object with no entries.
-//       return { Items: [] };
-//   }
-// }
-
 // The root provides a resolver function for each API endpoint
-var root = {
-  realtime: ({startTimestamp}) => {
+const resolvers = {
+  realtime: async ({sinceTimestamp}) => {
 
-    // Check the passed timestamp. It cannot be before yesterday's date
-    // and it cannot be in the future. This prevents bogus requests to
-    // DynamoDB and reduces costs.
-    const minTimestamp = getYesterdayDate().unixTimestamp;
+    // You can only fetch 24hours worth of data with this endpoint
+    const lowestTimestampAllowed = (new Date() / 1000) - 24 * 60 *60;
 
-    if(startTimestamp < minTimestamp){
+    if(sinceTimestamp && sinceTimestamp < lowestTimestampAllowed){
       throw new Error('This endpoint can only return data from the last 24 hours');
     }
-
-    if(startTimestamp > Date.now()/1000){
-      throw new Error('You cannot request data from the future!');
+    
+    // If no timestamp was given, return the data from the last minute
+    if(!sinceTimestamp){
+      console.log('No timestamp provided, going default');
+      sinceTimestamp = (new Date() / 1000) - 60;
     }
 
-    // Everything appears to be good, make a request to DynamoDB.
+    const data = await getReadingsFromDynamoDBSince(deviceName, sinceTimestamp);
 
-    return [
-    	{
-    		timestamp: 1927,
-    		reading: 10,
-    	}
-    ];
+    return output;
   },
 };
 
 
 
-module.exports.handler = function(){
-  // Run the GraphQL query '{ hello }' and print out the response
-  graphql(schema, '{ realtime(startTimestamp:1876876876){timestamp, reading} }', root).then((response) => {
-    console.log(JSON.stringify(response));
-  });
-}();
+module.exports.handler = async function(event, context, callback){
+  const response = await graphql(
+    schema, 
+    '{ realtime(sinceTimestamp:1548244800){timestamp, reading} }', 
+    resolvers
+  );
+
+  return {
+    statusCode: 200,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(response),
+  }
+};
