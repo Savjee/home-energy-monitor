@@ -1,7 +1,7 @@
 'use strict';
 const { dynamoDocClient } = require('../core/aws-connections');
 const { config } = require('../core/config');
-const { getYesterdayDate, writeToS3, calculateKWH } = require('../core/helpers');
+const { getYesterdayDate, writeToS3, calculateKWH, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
 
 const deviceName = 'test';
 
@@ -44,34 +44,6 @@ async function fetchYesterdaysData(){
     }
 }
 
-/**
- * Convert the output from DynamoDB (which is a JSON object)
- * into a string containing a CSV document with timestamp and
- * measurement column.
- */
-function convertDataToCSV(data){
-	let output = 'Timestamp,Watts\n';
-
-	for(const entry of data.Items){
-		// Last entry had this timestamp
-		const timestamp = entry.raw_timestamp;
-		const readings = entry.readings;
-
-		// Calculate the time of the first entry, assuming that a 
-		// measurement is taken every second. We do -2 because js
-		// starts counting from 0 and because the last element should
-		// not be included.
-		let timeForEntry = entry.raw_timestamp - data.Items.length -2;;
-
-		for(const reading of readings){
-			output += timeForEntry + ',' + reading + '\n';
-			timeForEntry++;
-		}
-	}
-
-	// console.log('output csv:', output);
-	return output;
-}
 
 function calculateKwhSummary(csvData){
     // Transform the data
@@ -98,17 +70,14 @@ async function writeUsageToDynamoDB(usageObj){
     console.time(timerLabel);
 
     try{
-        const key = deviceName;
-        const sortkey = 'summary-day-' + getYesterdayDate().string;
+        const key = 'summary-day-' + deviceName;
+        const sortkey = getYesterdayDate().unixTimestamp;
 
-        const data = await dynamoDocClient.put({
-            TableName : config.dynamoDb.table,
-            Item: {
-                primarykey: key,
-                sortkey: sortkey,
-                usage: usageObj
-            }
-        }).promise();
+        const data = await writeToDynamoDB(config.dynamoDb.table, {
+            primarykey: key,
+            sortkey: sortkey,
+            usage: usageObj
+        });
 
         console.timeEnd(timerLabel);
         return data;
@@ -126,7 +95,7 @@ module.exports.handler = async(event, context, callback) => {
 	const data = await fetchYesterdaysData();
 
 	// Convert to CSV
-	const csv = convertDataToCSV(data);
+	const csv = parseDynamoDBItemsToCSV(data);
 
 	const time = getYesterdayDate();
 
