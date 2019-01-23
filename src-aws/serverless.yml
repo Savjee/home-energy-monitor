@@ -85,7 +85,7 @@ resources:
           - AttributeName: "primarykey"
             AttributeType: S
           - AttributeName: "sortkey"
-            AttributeType: S
+            AttributeType: N
         KeySchema:
           - AttributeName: "primarykey"
             KeyType: HASH
@@ -122,9 +122,8 @@ resources:
           RuleDisabled: false
           Sql: >-
             SELECT *, 
-                  deviceId as primarykey, 
-                  parse_time("'reading-'yyyyMMdd-HHmmss", timestamp()) as sortkey,
-                  (timestamp()/1000) as raw_timestamp, 
+                  'reading-' + deviceId as primarykey, 
+                  (timestamp() / 1000) as sortkey,
                   ((timestamp() / 1000) + 2592000) as ttl
 
     ###
