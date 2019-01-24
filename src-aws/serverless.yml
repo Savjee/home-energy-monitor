@@ -36,6 +36,10 @@ provider:
         - !GetAtt [datastoreReadings, Arn]
         - !Join ['', [!GetAtt [datastoreReadings, Arn], '/*']]
 
+plugins:
+  - serverless-webpack
+  - serverless-finch
+
 package:
   individually: true
   exclude:
@@ -76,6 +80,14 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:service}-datastore
+
+    ###
+    # S3 Bucket to store our front-end dashboard HTML code!
+    ###
+    wwwBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-www
 
     ###
     # DynamoDB table that stores recent raw messages from the devices
@@ -191,3 +203,13 @@ resources:
                   Action:
                     - "dynamodb:PutItem"
                   Resource: !GetAtt [dynamoDataStore, Arn]
+
+custom:
+  client:
+    bucketName: ${self:service}-www
+    distributionFolder: dashboard/
+    indexDocument: index.html
+  webpack:
+    webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
+    includeModules: true   # Node modules configuration for packaging
+    packager: 'npm'   # Packager that will be used to package your external modules
