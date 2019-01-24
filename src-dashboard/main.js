@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.thingspeak.com/channels/662755/fields/1.json?api_key=R6JPGF9DZBGJ7AS4';
+const BASE_URL = '***REMOVED***';
 let data = [];
 let chart;
 
@@ -12,7 +12,16 @@ function toggleLoadingIndicator(visible){
 	}
 }
 
-function fetchData(entries = 10){
+function fetchData(since){
+	if(!since){
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() -1);
+		yesterday.setHours(yesterday.getHours() + 2);
+		since = yesterday.getTime() / 1000;
+	}
+
+	since = parseInt(since);
+
 	return new Promise((resolve, reject) => {
 		toggleLoadingIndicator(true);
 		const xhr = new XMLHttpRequest();
@@ -20,8 +29,14 @@ function fetchData(entries = 10){
 		xhr.onload = function () {
 
 			if (xhr.status >= 200 && xhr.status < 300) {
+				console.time("Parse JSON");
 				const json = JSON.parse(xhr.response);
+				console.timeEnd("Parse JSON");
+
+
+				console.time("Process data");
 				processData(json);
+				console.timeEnd("Process data");
 
 				toggleLoadingIndicator(false);
 				return resolve();
@@ -32,24 +47,28 @@ function fetchData(entries = 10){
 			}
 		};
 
-		xhr.open('GET', BASE_URL + '&results=' + entries);
-		xhr.send();
+		const query = `query{ realtime(sinceTimestamp: ${since}){timestamp, reading} }`;
+
+		xhr.open('POST', BASE_URL);
+		xhr.send(query);
 	});
 }
 
 function processData(rawData){
-	if(!rawData || !rawData.feeds || rawData.feeds.length === 0){
+	if(!rawData || !rawData.data || !rawData.data.realtime){
 		return;
 	}
 
-	for(const entry of rawData.feeds){
-		const date = new Date(entry.created_at);
-		const watts = parseFloat(entry.field1);
+	// data = rawData.data.realtime.map(el => [new Date])
+
+	for(const entry of rawData.data.realtime){
+		const date = new Date(entry.timestamp * 1000);
+		const watts = parseFloat(entry.reading);
 
 		// If this entry alredy exists, stop processing it!
-		if(data.find(el => el[0].getTime() === date.getTime())){
-			continue;
-		}
+		// if(data.find(el => el[0].getTime() === date.getTime())){
+			// continue;
+		// }
 
 		data.push([
 			date,
@@ -139,6 +158,8 @@ function updateMetricsForSelectedRange(chart, initial_draw){
  * by highlighting these areas in grey.
  */
 function highlightNightHours(canvas, area, chart){
+	console.time('Highlighting night hours');
+
 	let foundStart = false;
 	let foundEnd = false;
 
@@ -186,6 +207,8 @@ function highlightNightHours(canvas, area, chart){
 		const width = lastPosition - startHighlight;
 		canvas.fillRect(startHighlight, area.y, width, area.h);
 	}
+
+	console.timeEnd('Highlighting night hours');
 }
 
 /**
@@ -208,7 +231,7 @@ function isNightTarif(dateObj){
 async function initChart(){
 
 	// First fetch some data from ThingSpeak
-	await fetchData(5760);
+	await fetchData();
 
 	// Initialize the chart
 	chart = new Dygraph(
@@ -219,6 +242,8 @@ async function initChart(){
 	    	labels: ['Timestamp', 'Watts'],
 	    	underlayCallback: highlightNightHours,
 	    	drawCallback: updateMetricsForSelectedRange,
+	    	showRoller: true,
+	    	rollPeriod: 14,
 	    }
   	);
 
@@ -245,6 +270,8 @@ async function initChart(){
   	});
 
   	setInterval(async () => {
-  		await fetchData(10);
+  		const someSecondsAgo = new Date();
+  		someSecondsAgo.setMinutes(someSecondsAgo.getMinutes() - 1);
+  		await fetchData(someSecondsAgo.getTime() / 1000);
   	}, 30 * 1000);
 }
