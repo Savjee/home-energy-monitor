@@ -123,7 +123,7 @@ resources:
           RuleDisabled: false
           Sql: >-
             SELECT *, 
-                  'reading-' + deviceId as primarykey, 
+                  'reading-' + clientid() as primarykey, 
                   (timestamp() / 1000) as sortkey,
                   ((timestamp() / 1000) + 2592000) as ttl
 
