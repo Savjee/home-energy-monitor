@@ -11,7 +11,7 @@ class AWSConnector
   public:
     static AWSConnector* instance;
     WiFiClientSecure net = WiFiClientSecure();
-    MQTTClient client = MQTTClient(100);
+    MQTTClient client = MQTTClient(512);
 
     /**
      * Called when the ESP32 is in setup mode. Will only be called once
@@ -32,7 +32,7 @@ class AWSConnector
     }
 
     void sendMessage(String msg){
-      client.publish(AWS_IOT_TOPIC, msg);
+      client.publish("***REMOVED***", msg);
     }
 
   private:
@@ -49,7 +49,7 @@ class AWSConnector
       // Try to connect to AWS and count how many times we retried.
       // After reaching the maximum we should stop!
       Serial.print("Connecting to AWS IOT...");
-      while (!client.connect(DEVICE_NAME) && retries < AWS_MAX_RECONNECT_TRIES) {
+      while (!client.connect("xd-home-energy-monitor-1") && retries < AWS_MAX_RECONNECT_TRIES) {
         Serial.print(".");
         delay(AWS_RECONNECT_DELAY);
         retries++;

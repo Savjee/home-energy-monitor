@@ -13,13 +13,15 @@ AWSConnector awsConnector;
 const char *ssid = "***REMOVED***";
 const char *password = "***REMOVED***";
 
-// milliseconds
-long lastAwsUpdate = 0;
-
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 EnergyMonitor emon1;
+
+short measurements[30];
+short measureIndex = 0;
+unsigned long lastMeasurement = 0;
+unsigned long timeFinishedSetup = 0;
 
 void connectToWiFi()
 {
@@ -53,14 +55,20 @@ void setup()
   analogReadResolution(10);
   Serial.begin(115200);
 
-  lcd.begin();
+  lcd.init();
+  lcd.backlight();
 
   connectToWiFi();
 
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
 
+
+  lcd.setCursor(3, 0);
+  lcd.print("AWS connect   ");
   awsConnector.setup();
+
+  timeFinishedSetup = millis();
 }
 
 void writeEnergyToDisplay(double watts, double amps)
@@ -74,65 +82,59 @@ void writeEnergyToDisplay(double watts, double amps)
   lcd.print("A    ");
 }
 
+void printIPAddress(){
+  lcd.setCursor(3,0);
+  lcd.print(WiFi.localIP());
+}
+
 void loop()
 {
   unsigned long currentMillis = millis();
 
-  double amps = emon1.calcIrms(1480); // Calculate Irms only
-  double watt = amps * HOME_VOLTAGE;
-
-  // Update the display
-  writeEnergyToDisplay(watt, amps);
-
-  // Send data to AWS
-  if (currentMillis - lastAwsUpdate > AWS_MESSAGE_INTERVAL)
+  // If it's been longer then 1000ms since we took a measurement, take one now!
+  if(currentMillis - lastMeasurement > 1000)
   {
-    awsConnector.sendMessage("{\"watts\": 0, \"amps\": 0}");
-    lastAwsUpdate = currentMillis;
+    Serial.println("Taking measurement..");
+    double amps = emon1.calcIrms(1480); // Calculate Irms only
+    double watt = amps * HOME_VOLTAGE;
+
+    // Update the display
+    writeEnergyToDisplay(watt, amps);
+
+    lastMeasurement = millis();
+
+    // If we haven't been online for more then 5 seconds, ignore all the
+    // readings because they need to stabilize!
+    if(millis() - timeFinishedSetup < 10000){
+      lcd.setCursor(3, 0);
+      lcd.print("Startup mode   ");
+    }else{
+      printIPAddress();
+      measurements[measureIndex] = watt;
+      measureIndex++;
+    }
+  }
+
+  // Send data to AWS when we have 30 measurements
+  if (measureIndex == 30)
+  {
+    lcd.setCursor(3,0);
+    lcd.print("AWS upload..   ");
+    String msg = "{\"readings\": [";
+
+    for (short i = 0; i <= 28; i++){
+      msg += measurements[i];
+      msg += ",";
+    }
+
+    msg += measurements[29];
+    msg += "]}";
+
+    Serial.println(msg);
+
+    awsConnector.sendMessage(msg);
+    measureIndex = 0;
   }
 
   awsConnector.loop();
-  delay(500);
-}
-
-void sendToThingSpeak(double amps, double watts)
-{
-  //   WiFiClientSecure client;
-
-  //   client.setTimeout(5); // Only wait 5 seconds before stopping the request!
-
-  //   Serial.print("connecting to ");
-  //   Serial.println(host);
-
-  //   if (!client.connect(host, httpsPort)) {
-  //     Serial.println("connection failed");
-  //     return;
-  //   }
-
-  //   String url = "/update?api_key=";
-  //   url += api_key;
-  //   url += "&field1=";
-  //   url += String(watts);
-  //   url += "&field2=";
-  //   url += String(amps);
-  //   url += "&field3=";
-  //   url += WiFi.RSSI();
-  //   url += "\r\n";
-
-  //   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-  //                "Host: " + host + "\r\n" +
-  //                "Connection: close\r\n\r\n");
-
-  //   Serial.println("request sent");
-
-  // //  while (client.connected()) {
-  // //    String line = client.readStringUntil('\n');
-  // //    if (line == "\r") {
-  // //      Serial.println("headers received");
-  // //      break;
-  // //    }
-  // //  }
-
-  //   lcd.setCursor(3,0);
-  //   lcd.print(WiFi.localIP());
 }
