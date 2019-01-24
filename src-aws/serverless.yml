@@ -57,7 +57,8 @@ functions:
     events:
       - http:
           path: graphql
-          method: get
+          method: post
+          cors: true
 
 resources:
   Description: Monitoring home energy usage over time

@@ -6,7 +6,7 @@ const { getYesterdayDate,
         getReadingsFromDynamoDBSince, 
         parseDynamoDBItemsToCSV } = require('../../core/helpers');
 
-const deviceName = 'test';
+const deviceName = 'xd-home-energy-monitor-1';
 
 
 // Construct a schema, using GraphQL schema language
@@ -43,17 +43,21 @@ const resolvers = {
     }
 
     const data = await getReadingsFromDynamoDBSince(deviceName, sinceTimestamp);
-
-    return output;
+    return data;
   },
 };
 
 
 
 module.exports.handler = async function(event, context, callback){
+  const query = event.body;
+
+  console.log("event", event);
+  console.log('query', query);
+
   const response = await graphql(
     schema, 
-    '{ realtime(sinceTimestamp:1548244800){timestamp, reading} }', 
+    query, 
     resolvers
   );
 
@@ -61,6 +65,8 @@ module.exports.handler = async function(event, context, callback){
     statusCode: 200,
     headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify(response),
   }
