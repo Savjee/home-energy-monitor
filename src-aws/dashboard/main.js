@@ -16,7 +16,7 @@ function fetchData(since){
 	if(!since){
 		const yesterday = new Date();
 		yesterday.setDate(yesterday.getDate() -1);
-		yesterday.setHours(yesterday.getHours() + 2);
+		yesterday.setHours(yesterday.getHours() + 12);
 		since = yesterday.getTime() / 1000;
 	}
 
@@ -127,8 +127,8 @@ function getMetricsForSelectedRange(chart, initial_draw){
 	);
 
 	return {
-		min: Math.min.apply(Math, dataInScope.map(i => i[1])),
-		max: Math.max.apply(Math, dataInScope.map(i => i[1])),
+		min: 0,//Math.min.apply(Math, dataInScope.map(i => i[1])),
+		max: 0,//Math.max.apply(Math, dataInScope.map(i => i[1])),
 		current: 0,
 		usage: calculateKWH(dataInScope),
 	}
@@ -271,7 +271,7 @@ async function initChart(){
 
   	setInterval(async () => {
   		const someSecondsAgo = new Date();
-  		someSecondsAgo.setMinutes(someSecondsAgo.getMinutes() - 1);
+  		someSecondsAgo.setMinutes(someSecondsAgo.getMinutes() - 5);
   		await fetchData(someSecondsAgo.getTime() / 1000);
   	}, 30 * 1000);
 }
