@@ -1,9 +1,9 @@
 'use strict';
 const { dynamoDocClient } = require('../core/aws-connections');
 const { config } = require('../core/config');
-const { getYesterdayDate, writeToS3, calculateKWH, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
+const { getYesterdayDate, getTodaysDate, writeToS3, calculateKWH, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
 
-const deviceName = 'test';
+const deviceName = 'xd-home-energy-monitor-1';
 
 /**
  * Fetches all of yesterday's readings of a certain 
@@ -13,12 +13,16 @@ async function fetchYesterdaysData(){
 	const timerLabel = '[PERF] Get history data';
     console.time(timerLabel);
 
+
     try{
-        const prefix = 'reading-' + getYesterdayDate().string;
+        const startRange = getYesterdayDate().unixTimestamp;
+        const endRange = getTodaysDate().unixTimestamp;
+
+        const prefix = 'reading-' + deviceName;
 
         const data = await dynamoDocClient.query({
             TableName : config.dynamoDb.table,
-            KeyConditionExpression: '#key = :key and begins_with(#sortKey,:prefix)',
+            KeyConditionExpression: '#key = :key and #sortKey BETWEEN :start AND :end',
             ScanIndexForward: true, // DESC order
             ConsistentRead: false,
             ExpressionAttributeNames:{
@@ -26,8 +30,9 @@ async function fetchYesterdaysData(){
                 '#sortKey': 'sortkey',
             },
             ExpressionAttributeValues: {
-                ':key': deviceName,
-                ':prefix': prefix
+                ':key': prefix,
+                ':start': startRange,
+                ':end': endRange,
             },
         }).promise();
 
@@ -57,7 +62,7 @@ function calculateKwhSummary(csvData){
         if(parts[0] === 'Timestamp') continue;
 
         measurements.push(
-            [new Date(parseInt(parts[0])), parseInt(parts[1])]
+            [new Date(parseInt(parts[0]) * 1000), parseInt(parts[1])]
         );
     }
 
@@ -104,5 +109,6 @@ module.exports.handler = async(event, context, callback) => {
 
     // Calculate the kWh consumed & write it to DynamoDB
     const usageData = calculateKwhSummary(csv);
+    console.log('usage data', usageData);
     await writeUsageToDynamoDB(usageData);
 };

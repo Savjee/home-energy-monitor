@@ -1,6 +1,8 @@
 module.exports.getYesterdayDate = function(){
     const yesterday = new Date();
-    yesterday.setUTCHours(0,0,0,0);
+    yesterday.setHours(0);
+    yesterday.setMinutes(0);
+    yesterday.setSeconds(0);
     yesterday.setDate(yesterday.getDate() -1);
 
     const string = yesterday
@@ -10,7 +12,7 @@ module.exports.getYesterdayDate = function(){
 
     return {
     	dateObj: yesterday,
-    	unixTimestamp: yesterday.getTime() / 1000,
+    	unixTimestamp: parseInt(yesterday.getTime() / 1000),
     	string: string,
     	year: string.substring(0,4),
     	month: string.substring(4,6),
@@ -20,6 +22,9 @@ module.exports.getYesterdayDate = function(){
 
 module.exports.getTodaysDate = function(){
 	const today = new Date();
+    today.setHours(0);
+    today.setMinutes(0);
+    today.setSeconds(0);
 
     const string = today
     			.toISOString()
@@ -28,7 +33,7 @@ module.exports.getTodaysDate = function(){
 
     return {
     	dateObj: today,
-    	unixTimestamp: today.getTime() / 1000,
+    	unixTimestamp: parseInt(today.getTime() / 1000),
     	string: string,
     	year: string.substring(0,4),
     	month: string.substring(4,6),
@@ -48,7 +53,7 @@ module.exports.parseDynamoDBReadingsToJson = function(data){
 		// measurement is taken every second. We do -2 because js
 		// starts counting from 0 and because the last element should
 		// not be included.
-		let timeForEntry = entry.sortkey - dynamoData.Items.length -2;;
+		let timeForEntry = entry.sortkey - data.Items.length -2;;
 
 		for(const reading of readings){
 			output.push({
@@ -59,6 +64,8 @@ module.exports.parseDynamoDBReadingsToJson = function(data){
 			timeForEntry++;
 		}
 	}
+
+	return output;
 }
 
 /**
@@ -78,7 +85,7 @@ module.exports.parseDynamoDBItemsToCSV = function(dynamoData){
 	return output;
 }
 
-module.exports.getReadingsFromDynamoDBSince = function(deviceId, timestamp){
+module.exports.getReadingsFromDynamoDBSince = async function(deviceId, timestamp){
 	const { dynamoDocClient } = require('./aws-connections');
 	const { config } = require('./config');
 
@@ -183,8 +190,6 @@ module.exports.calculateKWH = function(dataset){
 
 		// Kilowatts used between those points
 		const kWh = (current[1] * seconds * (1/(60*60))) / 1000;
-		console.log('kwh:', kWh);
-
 
 		if(module.exports.isNightTarif(current[0])){
 			output.night += kWh;
@@ -192,6 +197,7 @@ module.exports.calculateKWH = function(dataset){
 			output.day += kWh;
 		}
 	}
+
 
 	return output;
 }

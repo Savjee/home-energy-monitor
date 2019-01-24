@@ -10,6 +10,9 @@ provider:
   deploymentBucket:
     name: "xd-serverless-deployments"
 
+  environment:
+    TZ: Europe/Brussels
+
   apiGateway:
     minimumCompressionSize: 1024
 
