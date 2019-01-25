@@ -44,6 +44,8 @@ package:
   individually: true
   exclude:
     - functions/graphql/node_modules/**
+    - dashboard/**
+    - tests/**
 
 functions:
   dailyDataArchive:
