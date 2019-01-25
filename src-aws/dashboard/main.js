@@ -220,8 +220,8 @@ function highlightNightHours(canvas, area, chart){
 
 	canvas.fillStyle = "#efefef";
 
-
-	for(const entry of chart.file_){
+	for(let i = 0; i < chart.file_.length; i++){
+		const entry = chart.file_[i];
 		const date = entry[0];
 
 		// Assume this is also going to be our last item to highlight
@@ -250,6 +250,8 @@ function highlightNightHours(canvas, area, chart){
 			startHighlight = null;
 			endHighlight = null;
 		}
+
+		i += 30;
 	}
 
 	// It could be that we found a start but not an end (in that case we're
