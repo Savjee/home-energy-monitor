@@ -12,6 +12,59 @@ function toggleLoadingIndicator(visible){
 	}
 }
 
+function formatTimestampForChartAxis(rawTimestamp){
+	const date = new Date(rawTimestamp * 1000);
+	const months = ["Jan", 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+	return date.getDate() + ' ' + months[date.getMonth()];
+}
+
+function fetchChartDataForDailyUsage(){
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+
+		xhr.onload = function () {
+
+			if (xhr.status >= 200 && xhr.status < 300) {
+				const json = JSON.parse(xhr.response);
+
+				// Process that data for chartjs
+
+				var chartData = {
+					labels: json.data.usageData.map(el => formatTimestampForChartAxis(el.timestamp)),
+					datasets: [
+						{
+							label: 'Day',
+							backgroundColor: 'rgb(54, 162, 235)',
+							data: json.data.usageData.map(el => el.dayUse)
+						},
+						{
+							label: 'Night',
+							backgroundColor: 'rgb(29, 41, 81)',
+							data: json.data.usageData.map(el => el.nightUse)
+						},
+					]
+				}
+
+				return resolve(chartData);
+			} else {
+				console.log('The request failed!');
+				return reject();
+			}
+		};
+
+		const startDate = new Date();
+		startDate.setDate(startDate.getDate() - 31);
+
+		const start = parseInt(startDate.getTime() / 1000);
+		const end = parseInt(Date.now() / 1000);
+
+		const query = `query{usageData(startDate:${start}, endDate:${end}){timestamp, dayUse, nightUse}}`;
+
+		xhr.open('POST', BASE_URL);
+		xhr.send(query);
+	});
+}
+
 function fetchData(since){
 	if(!since){
 		const yesterday = new Date();
@@ -23,7 +76,6 @@ function fetchData(since){
 	since = parseInt(since);
 
 	return new Promise((resolve, reject) => {
-		toggleLoadingIndicator(true);
 		const xhr = new XMLHttpRequest();
 
 		xhr.onload = function () {
@@ -38,11 +90,9 @@ function fetchData(since){
 				processData(json);
 				console.timeEnd("Process data");
 
-				toggleLoadingIndicator(false);
 				return resolve();
 			} else {
 				console.log('The request failed!');
-				toggleLoadingIndicator(false);
 				return reject();
 			}
 		};
@@ -226,6 +276,28 @@ function isNightTarif(dateObj){
 	}
 
 	return false;
+}
+
+async function initUsageChart(){
+	const chartdata = await fetchChartDataForDailyUsage();
+	var ctx = document.getElementById('canvas').getContext('2d');
+
+	new Chart(ctx, {
+		type: 'bar',
+		data: chartdata,
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			scales: {
+				xAxes: [{
+					stacked: true,
+				}],
+				yAxes: [{
+					stacked: true
+				}]
+			}
+		}
+	})
 }
 
 async function initChart(){

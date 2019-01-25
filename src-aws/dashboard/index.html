@@ -17,6 +17,7 @@
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js" integrity="sha256-XT58qJPKCsRBRq+MIcNDQ7dVh0GAa1k2r24w62z0Olk=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js" integrity="sha256-MZo5XY1Ah7Z2Aui4/alkfeiq3CopMdV/bbkc/Sh41+s=" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="main.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" integrity="sha256-NmfeKHX4FgSrBzL2BhPhzy41cHgzNYIEZyLyqf2/B30=" crossorigin="anonymous" />
@@ -43,37 +44,68 @@
   <br>
 
   <div class="container-fluid">
-    <div class="text-center">
-      <span class="badge badge-pill badge-primary">
-        Min<br>
-        <span id="usage-min">? W</span>
-      </span>
+    <div class="card">
+      <div class="card-header">
+        Last 12 hours
+      </div>
+      <div class="card-body">
+        <div class="text-center">
+          <span class="badge badge-pill badge-primary">
+            Min<br>
+            <span id="usage-min">? W</span>
+          </span>
 
-      <span class="badge badge-pill badge-primary">
-        Current<br>
-        <span id="usage-current">? W</span>
-      </span>
+          <span class="badge badge-pill badge-primary">
+            Current<br>
+            <span id="usage-current">? W</span>
+          </span>
 
-      <span class="badge badge-pill badge-primary">
-        Max<br>
-        <span id="usage-max">? W</span>
-      </span>
+          <span class="badge badge-pill badge-primary">
+            Max<br>
+            <span id="usage-max">? W</span>
+          </span>
 
-      <span class="badge badge-pill badge-primary">
-        Usage<br>
-        <span id="usage-kwh">? kWh</span>
-      </span>
+          <span class="badge badge-pill badge-primary">
+            Usage<br>
+            <span id="usage-kwh">? kWh</span>
+          </span>
+        </div>
+
+        <div id="graphdiv" style="width: 100%; height: 300px;"></div>
+      </div>
     </div>
   </div>
+
+  <br>
+
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        Last 30 days
+      </div>
+      <div class="card-body">
+        <canvas id="canvas" height="300px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  
+
   
 
 
-  <div id="graphdiv" style="position: absolute;top: 130px;left:0;right:0;bottom:0;"></div>
 
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript">
   (async function(){
-    await initChart();
+
+    toggleLoadingIndicator(true);
+    await Promise.all([
+      initChart(),
+      initUsageChart(),
+    ]);
+    toggleLoadingIndicator(false);
+    
   })();
 </script>
 </body>
