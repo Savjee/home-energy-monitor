@@ -1,14 +1,6 @@
 const { graphql, buildSchema } = require('graphql');
-const { dynamoDocClient, s3 } = require('../../core/aws-connections');
-const { config } = require('../../core/config');
-const { getYesterdayDate, 
-        getTodaysDate, 
-        getReadingsFromDynamoDBSince, 
-        getUsageDataFromDynamoDB,
-        parseDynamoDBItemsToCSV } = require('../../core/helpers');
-
-const deviceName = 'xd-home-energy-monitor-1';
-
+const { realtime } = require('./resolvers/realtime');
+const { usageData } = require('./resolvers/usageData');
 
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
@@ -34,49 +26,12 @@ const schema = buildSchema(`
 
 // The root provides a resolver function for each API endpoint
 const resolvers = {
-  usageData: async ({startDate, endDate}) => {
-    const data = await getUsageDataFromDynamoDB(deviceName, startDate, endDate);
-
-    const output = [];
-
-    for(const entry of data){
-      output.push({
-        timestamp: entry.sortkey,
-        dayUse: entry.usage.day,
-        nightUse: entry.usage.night
-      });
-    }
-
-    return output;
-  },
-
-  realtime: async ({sinceTimestamp}) => {
-
-    // You can only fetch 24hours worth of data with this endpoint
-    const lowestTimestampAllowed = (new Date() / 1000) - 24 * 60 *60;
-
-    if(sinceTimestamp && sinceTimestamp < lowestTimestampAllowed){
-      throw new Error('This endpoint can only return data from the last 24 hours');
-    }
-    
-    // If no timestamp was given, return the data from the last minute
-    if(!sinceTimestamp){
-      console.log('No timestamp provided, going default');
-      sinceTimestamp = (new Date() / 1000) - 60;
-    }
-
-    const data = await getReadingsFromDynamoDBSince(deviceName, sinceTimestamp);
-    return data;
-  },
+  usageData: usageData,
+  realtime: realtime,
 };
-
-
 
 module.exports.handler = async function(event, context, callback){
   const query = event.body;
-
-  console.log("event", event);
-  console.log('query', query);
 
   const response = await graphql(
     schema, 
