@@ -53,7 +53,7 @@ module.exports.parseDynamoDBReadingsToJson = function(data){
 		// measurement is taken every second. We do -2 because js
 		// starts counting from 0 and because the last element should
 		// not be included.
-		let timeForEntry = entry.sortkey - data.Items.length -2;;
+		let timeForEntry = entry.sortkey - readings.length -2;
 
 		for(const reading of readings){
 			output.push({
