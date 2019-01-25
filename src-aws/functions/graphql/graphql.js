@@ -4,6 +4,7 @@ const { config } = require('../../core/config');
 const { getYesterdayDate, 
         getTodaysDate, 
         getReadingsFromDynamoDBSince, 
+        getUsageDataFromDynamoDB,
         parseDynamoDBItemsToCSV } = require('../../core/helpers');
 
 const deviceName = 'xd-home-energy-monitor-1';
@@ -12,7 +13,7 @@ const deviceName = 'xd-home-energy-monitor-1';
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
   type Query {
-    usageData(startDate: Int!, endDate: Int!): [Reading]!
+    usageData(startDate: Int!, endDate: Int!): [DailySummary]!
 
     realtime(sinceTimestamp: Int!): [Reading]!
 
@@ -23,10 +24,32 @@ const schema = buildSchema(`
     timestamp: Int!
     reading: Int!
   }
+
+  type DailySummary{
+    timestamp: Int!
+    dayUse: Float!
+    nightUse: Float!
+  }
 `);
 
 // The root provides a resolver function for each API endpoint
 const resolvers = {
+  usageData: async ({startDate, endDate}) => {
+    const data = await getUsageDataFromDynamoDB(deviceName, startDate, endDate);
+
+    const output = [];
+
+    for(const entry of data){
+      output.push({
+        timestamp: entry.sortkey,
+        dayUse: entry.usage.day,
+        nightUse: entry.usage.night
+      });
+    }
+
+    return output;
+  },
+
   realtime: async ({sinceTimestamp}) => {
 
     // You can only fetch 24hours worth of data with this endpoint

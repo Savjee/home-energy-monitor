@@ -107,6 +107,30 @@ module.exports.getReadingsFromDynamoDBSince = async function(deviceId, timestamp
 	return module.exports.parseDynamoDBReadingsToJson(data);
 }
 
+module.exports.getUsageDataFromDynamoDB = async function(deviceId, startDate, endDate){
+	const { dynamoDocClient } = require('./aws-connections');
+	const { config } = require('./config');
+
+	const data = await dynamoDocClient.query({
+       TableName : config.dynamoDb.table,
+       KeyConditionExpression: '#key = :key and #sortkey BETWEEN :start AND :end',
+       ScanIndexForward: true, // DESC order
+       ConsistentRead: false,
+       ExpressionAttributeNames:{
+           '#key': 'primarykey',
+           '#sortkey': 'sortkey',
+       },
+       ExpressionAttributeValues: {
+           ':key': 'summary-day-' + deviceId,
+           ':start': startDate,
+           ':end': endDate
+       },
+    }).promise();
+
+	console.log(data);
+    return data.Items;
+}
+
 module.exports.writeToS3 = function(filename, contents){
 	const { s3 } = require('./aws-connections');
 	const { config } = require('./config');
