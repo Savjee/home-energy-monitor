@@ -109,19 +109,21 @@ function processData(rawData){
 		return;
 	}
 
-	// data = rawData.data.realtime.map(el => [new Date])
-
 	for(const entry of rawData.data.realtime){
-		const date = new Date(entry.timestamp * 1000);
+		const date = entry.timestamp * 1000;
+
+		// If this entries timestamp is before the last entry
+		// in our dataset, then we skip it because it's data 
+		// we already have! This reduces the time it takes to
+		// process all the data by a LOT!
+		if(data.length > 1 && date < data[data.length -1 ][0].getTime()){
+			continue;
+		}
+
 		const watts = parseFloat(entry.reading);
 
-		// If this entry alredy exists, stop processing it!
-		// if(data.find(el => el[0].getTime() === date.getTime())){
-			// continue;
-		// }
-
 		data.push([
-			date,
+			new Date(date),
 			watts,
 		]);
 	}
