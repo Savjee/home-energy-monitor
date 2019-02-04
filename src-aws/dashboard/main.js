@@ -346,8 +346,6 @@ async function initChart(){
   	});
 
   	setInterval(async () => {
-  		const someSecondsAgo = new Date();
-  		someSecondsAgo.setMinutes(someSecondsAgo.getMinutes() - 5);
-  		await fetchData(someSecondsAgo.getTime() / 1000);
+  		await fetchData(data[data.length-1][0].getTime() / 1000);
   	}, 30 * 1000);
 }
