@@ -2,20 +2,44 @@
   <ion-toolbar>
     <ion-title>Statistics</ion-title>
   </ion-toolbar>
+
+  <ion-toolbar>
+      <ion-segment value="30days" (ionChange)="segmentChanged($event)">
+          <ion-segment-button value="30days">
+              <ion-label>Last 30 days</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="12months">
+              <ion-label>Last 12 months</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+  </ion-toolbar>
+
 </ion-header>
 
-<ion-content>
-  <ion-card>
-    <ion-card-content>
-      <ion-card-subtitle>Last 30 days</ion-card-subtitle>
-      <canvas #usageChart></canvas>
-    </ion-card-content>
-  </ion-card>
+<ion-content padding [class.hidden]="activeSegmentControl !== '30days'">
+      <ion-card-subtitle>Breakdown per day</ion-card-subtitle>
+      <canvas #usageChart class="height260"></canvas>
 
-  <ion-card>
-      <ion-card-content>
-        <ion-card-subtitle>Day vs Night</ion-card-subtitle>
-        <canvas #dayVsNight></canvas>
-      </ion-card-content>
-    </ion-card>
+      <br>
+
+      <ion-card-subtitle>Day vs. Night</ion-card-subtitle>
+      <canvas #dayVsNight></canvas>
+
+      <br><br>
+
+      <ion-card-subtitle>More</ion-card-subtitle>
+      <ion-list>
+          <ion-item>
+            <ion-label>Daily average</ion-label>
+            <ion-note slot="end">{{ moreStats.daily_average | number:'1.0-2' }} kWh</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Total last 30 days</ion-label>
+            <ion-note slot="end">{{ moreStats.total_30days | number:'1.0-2' }} kWh</ion-note>
+          </ion-item>
+        </ion-list>
+</ion-content>
+
+<ion-content padding [class.hidden]="activeSegmentControl !== '12months'">
+  No graphs yet
 </ion-content>

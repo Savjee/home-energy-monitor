@@ -1,7 +1,27 @@
-$chartHeight: 200px;
+$chartHeight: 180px;
 
 canvas{
     width: 100%;
     height: $chartHeight;
     max-height: $chartHeight;
+    padding-right: 16px;
+
+    &.height260{
+        height: 260px;
+        max-height: 260px;
+    }
+}
+
+ion-content{
+    &.hidden{
+        display:none;
+    }
+}
+
+ion-segment-button{
+    max-width: none !important;
+}
+
+ion-item{
+    --padding-start: 0;
 }
