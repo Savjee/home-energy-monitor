@@ -1,6 +1,7 @@
 const BASE_URL = '***REMOVED***';
 let data = [];
 let chart;
+let animateDuration = 1500;
 
 function toggleLoadingIndicator(visible){
 	const $el = document.getElementById('loading-indicator');
@@ -72,8 +73,9 @@ function fetchData(since){
 		yesterday.setHours(yesterday.getHours() + 12);
 		since = yesterday.getTime() / 1000;
 	}
-
+	
 	since = parseInt(since);
+
 
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest();
@@ -128,15 +130,62 @@ function processData(rawData){
 		]);
 	}
 
-	// Update the current, max and min values
-	const $current = document.getElementById('usage-current');
-	$current.innerHTML = data[data.length-1][1] + ' W';
-
 	if(chart){
 		chart.updateOptions({
 			file: data,
 		});
 	}
+
+	// Update metrics
+	const $current = document.getElementById('stats-current');
+	const $todayKwh = document.getElementById('stats-kwh');
+	const $standbyPower = document.getElementById('stats-standby');
+	const $max = document.getElementById('stats-max');
+
+	const totalKwh = calculateKWH(data);
+
+	$current.innerHTML = data[data.length-1][1] + ' W';
+	$todayKwh.innerHTML = (Math.round(totalKwh * 100) / 100) + ' kWh';
+
+
+	const readings = data.map(el => el[1]);
+	const standbyWatts = jStat.mode(readings);
+	$standbyPower.innerHTML = parseInt(standbyWatts) + ' W';
+	$max.innerHTML = jStat.max(readings) + ' W';
+
+	// Calculate total standby kWh
+	const hours = (data[data.length-1][0].getTime() - data[0][0].getTime()) / 1000 / 3600;
+	const standbyKwh = (standbyWatts/1000) * hours;
+
+	initStandbyChart({
+		activePower: totalKwh - (standbyKwh/1000 * hours), 
+		standbyPower: standbyKwh
+	});
+}
+
+function initStandbyChart({activePower, standbyPower}){
+	const barChartData = {
+		labels: ['Today'],
+		datasets: [{
+			data: [ activePower, standbyPower ],
+			backgroundColor: ['rgb(54, 162, 235)', 'rgb(29, 41, 81)']
+		}],
+		labels: ['Active', 'Standby']
+	};
+	
+	const ctx = document.getElementById('chart-standby').getContext('2d');
+	new Chart(ctx, {
+		type: 'doughnut',
+		data: barChartData,
+		options: {
+			animation: {
+				duration: animateDuration
+			},
+			responsive: true,
+		}
+	});
+
+	animateDuration = 0;
 }
 
 /**
@@ -179,9 +228,6 @@ function getMetricsForSelectedRange(chart, initial_draw){
 	);
 
 	return {
-		min: 0,//Math.min.apply(Math, dataInScope.map(i => i[1])),
-		max: 0,//Math.max.apply(Math, dataInScope.map(i => i[1])),
-		current: 0,
 		usage: calculateKWH(dataInScope),
 	}
 }
@@ -193,14 +239,7 @@ function getMetricsForSelectedRange(chart, initial_draw){
  */
 function updateMetricsForSelectedRange(chart, initial_draw){
 	const metrics = getMetricsForSelectedRange(chart, initial_draw);
-
-	// const $current = document.getElementById('usage-current');
-	const $min = document.getElementById('usage-min');
-	const $max = document.getElementById('usage-max');
 	const $kwh = document.getElementById('usage-kwh');
-
-	$max.innerHTML = metrics.max;
-	$min.innerHTML = metrics.min;
 	$kwh.innerHTML = parseFloat(metrics.usage).toFixed(2) + ' kWh';
 }
 
@@ -210,8 +249,6 @@ function updateMetricsForSelectedRange(chart, initial_draw){
  * by highlighting these areas in grey.
  */
 function highlightNightHours(canvas, area, chart){
-	console.time('Highlighting night hours');
-
 	let foundStart = false;
 	let foundEnd = false;
 
@@ -261,8 +298,6 @@ function highlightNightHours(canvas, area, chart){
 		const width = lastPosition - startHighlight;
 		canvas.fillRect(startHighlight, area.y, width, area.h);
 	}
-
-	console.timeEnd('Highlighting night hours');
 }
 
 /**
@@ -344,6 +379,16 @@ async function initChart(){
   			dateWindow: [start.getTime(), start.getTime() + 24*60*60*1000]
   		})
   	});
+
+  // 	document.getElementById('btnGetSignature').addEventListener('click', () => {
+  // 		if(chart.dateWindow_){
+		// 	const startDate = chart.dateWindow_[0];
+		// 	const endDate = chart.dateWindow_[1];
+
+		// 	const filteredData = data.filter(el => el[0] < endDate && el[0] > startDate);
+		// 	console.log(filteredData.map(el => '['+ el[1] + '/10000]\n').toString());
+		// }
+  // 	});
 
   	// Every 30 seconds: fetch new data from the GraphQL endpoint.
   	// Fetch new records since the last record's timestamp.

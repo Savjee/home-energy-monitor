@@ -4,3 +4,22 @@
 	top: -17px !important;
 	width: 100%;*/
 }
+
+.circle{
+	display:block;
+	background-color: #1D294E;
+	color: #fff;
+	width: 120px;
+	height: 120px;
+
+	justify-content: center;
+	align-items: center;
+	border-radius: 100%;
+	text-align: center;
+	display: inline-flex;
+}
+
+.circle.big{
+	/*width: 200px;*/
+	/*height:200px;*/
+}
