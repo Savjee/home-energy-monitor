@@ -21,7 +21,7 @@ export class EnergyService {
 
   constructor(private http: HttpClient) { }
 
-  public async getStatistics(): Promise<MainStats>{
+  public async getStatistics(): Promise<any>{
 
     // Calculate the start and ending dates
     const startDate = new Date();
@@ -62,5 +62,5 @@ export class EnergyService {
 }
 
 export interface MainStats{
-
+  data: any;
 }

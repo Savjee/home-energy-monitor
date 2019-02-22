@@ -1,0 +1,7 @@
+$chartHeight: 200px;
+
+canvas{
+    width: 100%;
+    height: $chartHeight;
+    max-height: $chartHeight;
+}

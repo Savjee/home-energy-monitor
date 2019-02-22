@@ -1,18 +1,21 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>tab-statistics</ion-title>
+    <ion-title>Statistics</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-card class="welcome-card">
-    <ion-card-header>
-      <ion-card-subtitle>Last 30 days</ion-card-subtitle>
-    </ion-card-header>
+  <ion-card>
     <ion-card-content>
-      <p>
-        Chart goes here
-      </p>
+      <ion-card-subtitle>Last 30 days</ion-card-subtitle>
+      <canvas #usageChart></canvas>
     </ion-card-content>
   </ion-card>
+
+  <ion-card>
+      <ion-card-content>
+        <ion-card-subtitle>Day vs Night</ion-card-subtitle>
+        <canvas #dayVsNight></canvas>
+      </ion-card-content>
+    </ion-card>
 </ion-content>
