@@ -1,6 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Statistics</ion-title>
+    <ion-spinner *ngIf="energyService.isLoading()"></ion-spinner>
   </ion-toolbar>
 
   <ion-toolbar>

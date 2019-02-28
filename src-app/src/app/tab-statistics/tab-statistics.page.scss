@@ -18,10 +18,10 @@ ion-content{
     }
 }
 
-ion-segment-button{
-    max-width: none !important;
-}
-
 ion-item{
     --padding-start: 0;
+}
+
+ion-segment-button{
+    min-width: 120px;
 }

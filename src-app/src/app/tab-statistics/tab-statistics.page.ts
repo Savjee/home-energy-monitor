@@ -26,7 +26,7 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     '30days': false,
   }
 
-  constructor(private energyService: EnergyService) { }
+  constructor(public energyService: EnergyService) { }
 
   ngOnInit() {
   }
@@ -110,7 +110,7 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
       data: {
         datasets: [{
           data: [ dayUsage, nightUsage],
-          backgroundColor: ['rgb(54, 162, 235)', 'rgb(29, 41, 81)'],
+          backgroundColor: ['#8440FF', '#534B62'],
         }],
         labels: ['Day usage', 'Night usage']
       },
@@ -154,12 +154,12 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
 			datasets: [
 				{
 					label: 'Day',
-					backgroundColor: 'rgb(54, 162, 235)',
+					backgroundColor: '#8440FF',
 					data: data.data.usageData.map(el => el.dayUse)
 				},
 				{
 					label: 'Night',
-					backgroundColor: 'rgb(29, 41, 81)',
+					backgroundColor: '#534B62',
 					data: data.data.usageData.map(el => el.nightUse)
 				},
 			]
