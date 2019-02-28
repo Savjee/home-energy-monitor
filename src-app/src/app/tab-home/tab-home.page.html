@@ -1,9 +1,44 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Home</ion-title>
-  </ion-toolbar>
-</ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="end">
+        <ion-spinner *ngIf="false"></ion-spinner>
+      </ion-buttons>
+      <ion-title>Home</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <div [class.invisible]="energyService.isLoading() === false">
+    <ion-progress-bar type="indeterminate" ></ion-progress-bar>
+  </div>
 
-<ion-content padding>
+  <ion-content padding>
 
-</ion-content>
+
+    <div class="center">
+        <div class="container">
+            <div class="circle current">
+              <p>
+                <span class="value" *ngIf="stats.current !== '?'">{{stats.current | number:'1.0-0' }}W</span>
+                <span class="value" *ngIf="stats.current === '?'">&#8961; W</span>
+                <span class="label">real-time</span>
+              </p>
+            </div>
+            <div class="circle alwayson">
+                <p>
+                    <span class="value" *ngIf="stats.always_on !== '?'">{{stats.always_on | number:'1.0-0' }} W</span>
+                    <span class="value" *ngIf="stats.always_on === '?'">&#8961; W</span>
+                    <span class="label">always-on</span>
+                  </p>
+            </div>
+            <div class="circle today">
+                <p>
+                    <span class="value" *ngIf="stats.today_so_far !== '?'">{{stats.today_so_far | number:'1.0-1'}} kWh</span>
+                    <span class="value" *ngIf="stats.today_so_far === '?'">&#8961; kWh</span>
+                    <span class="label">today so far</span>
+                  </p>
+            </div>
+        </div>
+    </div>
+
+
+
+  </ion-content>

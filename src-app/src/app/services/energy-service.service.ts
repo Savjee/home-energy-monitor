@@ -7,19 +7,19 @@ import { HttpClient } from '@angular/common/http';
 export class EnergyService {
 
   /**
-   * Indicates wether or not there is a network request in process. Is used
-   * to toggle the visibility of certain spinners in the application.
-   */
-  private isLoading = false;
-
-  /**
    * The URL to the main GraphQL API. This will be used to make all requests.
    */
   private BASE_URL = "***REMOVED***";
 
+  private pendingRequests = [];
+
 
 
   constructor(private http: HttpClient) { }
+
+  public isLoading() {
+    return this.pendingRequests.length !== 0;
+  }
 
   public async getStatistics(): Promise<any>{
 
@@ -46,6 +46,33 @@ export class EnergyService {
     return data;
   }
 
+  public async getHomePageStatistics(all?: boolean): Promise<any>{
+    const timestamp = Math.floor(Date.now() / 1000 - 60);
+
+    let additionalQueries = '';
+    if (all === true) {
+      additionalQueries = `
+      stats{
+          always_on
+          today_so_far
+      }`
+    }
+
+    const data = await this.makeGraphQLRequest(`
+      query{
+        realtime(sinceTimestamp: ${timestamp}){
+          timestamp
+          reading
+        },
+        ${additionalQueries}
+      }
+    `);
+
+    console.log('realtime', data);
+
+    return data;
+  }
+
 
   /**
    * Makes a request to the GraphQL API and returns a promise that should
@@ -53,11 +80,24 @@ export class EnergyService {
    *
    * @param query The GraphQL query that should be executed
    */
-  private makeGraphQLRequest(query: string) {
-    return this.http.post(
+  private async makeGraphQLRequest(query: string) {
+
+    const req = this.http.post(
       this.BASE_URL,
       query
     ).toPromise();
+
+    this.pendingRequests.push(req);
+
+    const data = await req;
+
+    this.pendingRequests.splice(
+      this.pendingRequests.indexOf(req),
+      1
+    );
+
+    return data;
+
   }
 }
 
