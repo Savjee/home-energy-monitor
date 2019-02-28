@@ -202,8 +202,6 @@ module.exports.calculateKWH = function(dataset){
 		night: 0,
 	};
 
-	let total = 0;
-
 	for(let i = 0; i < dataset.length-1; i++){
 		const current = dataset[i];
 		const next = dataset[i+1];
@@ -221,7 +219,6 @@ module.exports.calculateKWH = function(dataset){
 			output.day += kWh;
 		}
 	}
-
 
 	return output;
 }
