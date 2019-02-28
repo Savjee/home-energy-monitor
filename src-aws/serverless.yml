@@ -39,6 +39,7 @@ provider:
 plugins:
   - serverless-webpack
   - serverless-finch
+  - serverless-scriptable-plugin
 
 package:
   individually: true
@@ -207,10 +208,14 @@ resources:
                   Resource: !GetAtt [dynamoDataStore, Arn]
 
 custom:
+  scriptHooks:
+     before:deploy:createDeploymentArtifacts: npm run test
+
   client:
     bucketName: ${self:service}-www
     distributionFolder: dashboard/
     indexDocument: index.html
+
   webpack:
     webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
     includeModules: true   # Node modules configuration for packaging

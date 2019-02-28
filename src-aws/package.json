@@ -7,13 +7,14 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha tests"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "aws-sdk": "^2.393.0",
     "serverless-finch": "^2.3.2",
+    "serverless-scriptable-plugin": "^1.0.0",
     "serverless-webpack": "^5.2.0",
     "webpack": "^4.29.0",
     "webpack-node-externals": "^1.7.2"
