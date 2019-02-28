@@ -1,4 +1,4 @@
-const { graphql, buildSchema } = require('graphql');
+const { graphql, buildSchema } = require('graphql/index');
 const { realtime } = require('./resolvers/realtime');
 const { usageData } = require('./resolvers/usageData');
 const { stats } = require('./resolvers/stats');
