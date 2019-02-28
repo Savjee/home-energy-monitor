@@ -1,5 +1,7 @@
 const graphqlFields = require('graphql-fields');
-const { getReadingsFromDynamoDBSince, getTodaysDate, calculateKWH } = require('../../../core/helpers');
+const { getReadingsFromDynamoDBSince, getTodaysDate } = require('../../../core/helpers');
+const { calculateKWH } = require('../../../core/helpers/CalculateKwh');
+
 const jStat = require('jStat').jStat;
 
 const { config } = require('../../../core/config');

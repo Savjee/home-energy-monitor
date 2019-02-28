@@ -1,12 +1,13 @@
 'use strict';
 const { dynamoDocClient } = require('../core/aws-connections');
 const { config } = require('../core/config');
-const { getYesterdayDate, getTodaysDate, writeToS3, calculateKWH, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
+const { getYesterdayDate, getTodaysDate, writeToS3, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
+const { calculateKWH } = require('../core/helpers/CalculateKwh');
 
 const deviceName = 'xd-home-energy-monitor-1';
 
 /**
- * Fetches all of yesterday's readings of a certain 
+ * Fetches all of yesterday's readings of a certain
  * device from DynamoDB.
  */
 async function fetchYesterdaysData(){

@@ -1,4 +1,4 @@
-const {calculateKWH} = require('../core/helpers');
+const {calculateKWH} = require('./CalculateKwh');
 const assert = require('assert');
 
 describe('Calculate kWh', function() {
