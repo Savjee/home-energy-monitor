@@ -18,5 +18,9 @@
     "serverless-webpack": "^5.2.0",
     "webpack": "^4.29.0",
     "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "graphql-fields": "^2.0.1",
+    "jStat": "^1.7.1"
   }
 }
