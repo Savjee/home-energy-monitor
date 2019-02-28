@@ -24,7 +24,7 @@ module.exports.stats = async ({ sinceTimestamp }, context, info) => {
     // the records from today, potentially saving us a lot of DynamoDB read capacity.
     if (requestedFields.today_so_far) {
         // Tranform the readings into something the calculateKWH function expects
-        const input = allReadings.map(item => [item.timestamp, item.reading]);
+        const input = allReadings.map(item => [new Date(item.timestamp * 1000), item.reading]);
 
         const usage = calculateKWH(input);
         output.today_so_far = usage.day + usage.night;
