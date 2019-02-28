@@ -20,6 +20,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
+    "graphql": "^14.1.1",
     "graphql-fields": "^2.0.1",
     "jStat": "^1.7.1"
   }
