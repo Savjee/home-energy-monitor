@@ -6,6 +6,6 @@ module.exports = {
   entry: slsw.lib.entries,
   target: 'node',
   externals: [nodeExternals({
-  	whitelist: ['graphql']
+  	whitelist: ['graphql', 'graphql-fields']
   })] // exclude external modules
 };
