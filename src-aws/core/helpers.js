@@ -165,23 +165,6 @@ module.exports.getDatesBetween = function(startDate, endDate){
 }
 
 /**
- * Checks if a given date object is within night tarif or not.
- * For us that is between 21:00 and 06:00 and every weekend day.
- */
-module.exports.isNightTarif = function(dateObj){
-	if((dateObj.getHours() >= 21 && dateObj.getHours() <= 23) ||
-		(dateObj.getHours() >= 0 && dateObj.getHours() <= 5)){
-		return true;
-	}
-
-	if(dateObj.getDay() === 0 || dateObj.getDay() === 6){
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * Calculates how many kWh has been used in the given dataset.
  * Returns an object with two fields: "day" and "night" to
  * know how much was used under which tarif.
@@ -196,7 +179,9 @@ module.exports.isNightTarif = function(dateObj){
  * 		...
  * 	]
  */
-module.exports.calculateKWH = function(dataset){
+module.exports.calculateKWH = function (dataset) {
+	const { isNightTarif } = require('./helpers/IsNightTarif');
+
 	const output = {
 		day: 0,
 		night: 0,
@@ -213,7 +198,7 @@ module.exports.calculateKWH = function(dataset){
 		// Kilowatts used between those points
 		const kWh = (current[1] * seconds * (1/(60*60))) / 1000;
 
-		if(module.exports.isNightTarif(current[0])){
+		if(isNightTarif(current[0])){
 			output.night += kWh;
 		}else{
 			output.day += kWh;
