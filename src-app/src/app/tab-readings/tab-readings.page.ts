@@ -107,7 +107,7 @@ export class TabReadingsPage {
       },
 
       xAxis: {
-        min: Date.now() - 60*60*1000,
+        min: Date.now() - 4*60*60*1000,
         max: Date.now(),
         type: 'datetime',
       },
