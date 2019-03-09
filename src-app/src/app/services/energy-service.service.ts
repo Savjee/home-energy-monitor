@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ToastController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +14,7 @@ export class EnergyService {
 
   private pendingRequests = [];
 
-
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private toastCtrl: ToastController) { }
 
   public isLoading() {
     return this.pendingRequests.length !== 0;
@@ -103,17 +102,40 @@ export class EnergyService {
       query
     ).toPromise();
 
+    // Push the request into the array so we can show load spinners
+    // in the application at various places.
     this.pendingRequests.push(req);
 
-    const data = await req;
+    req
+      .then((data) => {
+        return data;
+      })
+      .catch(async (err) => {
+        console.error('Error making GraphQL request', err);
 
-    this.pendingRequests.splice(
-      this.pendingRequests.indexOf(req),
-      1
-    );
+        const toast = await this.toastCtrl.create({
+          message: 'Could not fetch data from server. Try again later.',
+          duration: 5000,
+          showCloseButton: true,
+          position: 'top',
+          color: 'dark'
+        });
 
-    return data;
+        toast.present();
+      })
+      .finally(() => {
 
+        // After any request, regardless of wether it was successfull
+        // or not, we have to remove it from the pendingRequests array
+        // so that all loading spinners dissapear in the UI.
+        this.pendingRequests.splice(
+          this.pendingRequests.indexOf(req),
+          1
+        );
+      });
+
+    // Return the pending requests so other methods can await it.
+    return req;
   }
 }
 
