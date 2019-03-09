@@ -19,12 +19,12 @@
 
 <ion-content padding [class.hidden]="activeSegmentControl !== '30days'">
       <ion-card-subtitle>Breakdown per day</ion-card-subtitle>
-      <canvas #usageChart class="height260"></canvas>
+      <div #usageChart class="chart height260"></div>
 
       <br>
 
       <ion-card-subtitle>Day vs. Night</ion-card-subtitle>
-      <canvas #dayVsNight></canvas>
+      <div #dayVsNight class="chart"></div>
 
       <br><br>
 

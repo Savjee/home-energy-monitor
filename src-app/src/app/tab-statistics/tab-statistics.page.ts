@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { EnergyService } from '../services/energy-service.service';
-import { Chart } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import * as Highcharts from 'highcharts';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-tab-statistics',
@@ -26,7 +26,7 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     '30days': false,
   }
 
-  constructor(public energyService: EnergyService) { }
+  constructor(public energyService: EnergyService, private decimalPipe: DecimalPipe) { }
 
   ngOnInit() {
   }
@@ -103,87 +103,94 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
    * Draw the pie chart that shows the difference between day and night usage.
    */
   private async drawDayVsNightChart(dayUsage: number, nightUsage: number) {
-    const ctx = this.dayVsNightChartRef.nativeElement.getContext('2d');
-    new Chart(ctx, {
-      plugins: [ChartDataLabels],
-      type: 'doughnut',
-      data: {
-        datasets: [{
-          data: [ dayUsage, nightUsage],
-          backgroundColor: ['#8440FF', '#534B62'],
-        }],
-        labels: ['Day usage', 'Night usage']
+    const self = this;
+
+    Highcharts.chart(this.dayVsNightChartRef.nativeElement, {
+      chart: {
+        type: 'pie'
       },
-      options: {
-        tooltips: { enabled: false },
-        legend: { display: false },
-        layout: {
-          padding: {
-            top: 10,
-          }
-        },
-        responsive: true,
-        circumference: Math.PI,
-        rotation: -Math.PI,
-        plugins: {
-          datalabels: {
-            borderColor: 'white',
-						borderRadius: 25,
-            borderWidth: 2,
-            color: 'white',
-            anchor: 'end',
-            font: {
-							weight: 'bold'
-						},
-						formatter: function(value, context) {
-              return Math.round(value) + ' kWh';
-            },
-            backgroundColor: function(context) {
-							return context.dataset.backgroundColor;
-						}
+      title: {
+        text: null,
+      },
+      plotOptions:{
+        pie: {
+          colors: ['#534B62', '#8440FF'],
+          dataLabels:{
+            enabled: true,
+            distance: -30,
+            style:{
+              color: 'white'
+            }
           }
         }
-      }
+      },
+      tooltip: {
+        formatter: function(){
+          return `<b>${this.point.name} usage:</b>
+                  <br>${self.decimalPipe.transform(this.y, '1.1-2')} kWh`;
+        }
+      },
+      series: [{
+        type: 'pie',
+        name: 'Day vs Night',
+        data: [
+          ['Night', nightUsage],
+          ['Day', dayUsage],
+        ]
+      }]
     });
   }
 
   private async drawDailyUsageChart(data) {
-    // Now transform it
-    const chartData = {
-      labels: data.data.usageData.map(el => this.formatTimestampForChartAxis(el.timestamp)),
-			datasets: [
-				{
-					label: 'Day',
-					backgroundColor: '#8440FF',
-					data: data.data.usageData.map(el => el.dayUse)
-				},
-				{
-					label: 'Night',
-					backgroundColor: '#534B62',
-					data: data.data.usageData.map(el => el.nightUse)
-				},
-			]
-    }
+    // Reference to our page instance for use inside the formatter
+    // of Highcharts (arrow functions not allowed)
+    const self = this;
 
-    // Draw the chart
-    const ctx = this.usageChartRef.nativeElement.getContext('2d');
-
-    new Chart(ctx, {
-      type: 'bar',
-      plugins: [],
-      data: chartData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          xAxes: [{
-            stacked: true,
-          }],
-          yAxes: [{
-            stacked: true
-          }]
+    Highcharts.chart(this.usageChartRef.nativeElement, {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: null,
+      },
+      legend:{
+        enabled: false,
+      },
+      xAxis:{
+        categories: data.data.usageData.map(el => this.formatTimestampForChartAxis(el.timestamp)),
+      },
+      yAxis:{
+        min: 0,
+        allowDecimals: false,
+        title:{
+          text: null,
         }
-      }
+      },
+      tooltip: {
+        formatter: function(){
+          return `<b>${this.x} - ${this.series.name} usage:</b>
+                  <br> ${self.decimalPipe.transform(this.y, '1.1-2')} kWh`;
+        }
+      },
+      plotOptions: {
+        column: {
+          stacking: 'normal',
+        }
+      },
+      series: [
+        {
+          type: 'column',
+          name: 'Night',
+          color: '#534B62',
+          data: data.data.usageData.map(el => el.nightUse),
+        },
+        {
+          type: 'column',
+          name: 'Day',
+          color: '#8440FF',
+          data: data.data.usageData.map(el => el.dayUse),
+        },
+      ]
     });
   }
 }
