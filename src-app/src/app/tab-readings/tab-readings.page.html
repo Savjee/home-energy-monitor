@@ -1,9 +1,22 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Readings</ion-title>
+    <ion-spinner *ngIf="energyService.isLoading()"></ion-spinner>
+  </ion-toolbar>
+  <ion-toolbar class="datePicker">
+    <ion-icon name="arrow-back" slot="start" (click)="goToYesterday()"></ion-icon>
+
+    <ion-title>
+      <ion-datetime display-format="MMM DD, YYYY" [(ngModel)]="selectedDate" (ionChange)="dateChanged()"></ion-datetime>
+    </ion-title>
+
+    <ion-icon name="arrow-forward" slot="end" (click)="goToTomorrow()" *ngIf="showForwardArrow"></ion-icon>
   </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
-
+<ion-content>
+  <div class="graph-wrapper">
+    <!-- <canvas #chart></canvas> -->
+    <div #chart2></div>
+  </div>
 </ion-content>

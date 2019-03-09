@@ -73,6 +73,22 @@ export class EnergyService {
     return data;
   }
 
+  public async getReadingsForDate(): Promise<any>{
+    const timestamp = new Date();
+    timestamp.setHours(timestamp.getHours() - 6);
+
+    const data = await this.makeGraphQLRequest(`
+      query{
+        realtime(sinceTimestamp: ${Math.floor(timestamp.getTime() / 1000)}){
+          timestamp, reading
+        }
+      }`
+    );
+
+    console.log('readings', data.data.realtime);
+    return data.data.realtime;
+  }
+
 
   /**
    * Makes a request to the GraphQL API and returns a promise that should
@@ -80,7 +96,7 @@ export class EnergyService {
    *
    * @param query The GraphQL query that should be executed
    */
-  private async makeGraphQLRequest(query: string) {
+  private async makeGraphQLRequest(query: string): Promise<any> {
 
     const req = this.http.post(
       this.BASE_URL,

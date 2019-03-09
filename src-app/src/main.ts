@@ -6,7 +6,8 @@ import { environment } from './environments/environment';
 
 import { Chart } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-
+import 'chartjs-plugin-zoom';
+import Hammer from 'hammerjs';
 
 if (environment.production) {
   enableProdMode();
@@ -15,6 +16,7 @@ if (environment.production) {
 // Disable the Chart Data Labels plugin by default. We will enable it
 // on a case by case basis.
 Chart.plugins.unregister(ChartDataLabels);
+
 
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.log(err));

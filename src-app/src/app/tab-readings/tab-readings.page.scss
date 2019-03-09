@@ -1,0 +1,22 @@
+.datePicker{
+    ion-title{
+        font-weight: normal !important;
+    }
+}
+
+
+
+.graph-wrapper{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    div{
+        width: 100%;
+        height: 100%;
+    }
+    canvas{
+        // width: 100%;
+        // height: 100%;
+    }
+}

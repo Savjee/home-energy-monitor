@@ -15,7 +15,7 @@
 
     <div class="center">
         <div class="container">
-            <div class="circle current">
+            <div class="circle current" [routerLink]="['/tabs/readings']">
               <p>
                 <span class="value" *ngIf="stats.current !== '?'">{{stats.current | number:'1.0-0' }}W</span>
                 <span class="value" *ngIf="stats.current === '?'">&#8961; W</span>
@@ -29,7 +29,7 @@
                     <span class="label">always-on</span>
                   </p>
             </div>
-            <div class="circle today">
+            <div class="circle today" [routerLink]="['/tabs/statistics']">
                 <p>
                     <span class="value" *ngIf="stats.today_so_far !== '?'">{{stats.today_so_far | number:'1.0-1'}} kWh</span>
                     <span class="value" *ngIf="stats.today_so_far === '?'">&#8961; kWh</span>
