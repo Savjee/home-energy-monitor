@@ -6,8 +6,6 @@ import { environment } from './environments/environment';
 
 import { Chart } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import 'chartjs-plugin-zoom';
-import Hammer from 'hammerjs';
 
 if (environment.production) {
   enableProdMode();

@@ -26,7 +26,6 @@
     "@ionic/angular": "^4.0.0",
     "chart.js": "^2.7.3",
     "chartjs-plugin-datalabels": "^0.5.0",
-    "chartjs-plugin-zoom": "^0.5.0",
     "cordova-ios": "4.5.5",
     "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-ionic-keyboard": "^2.1.3",

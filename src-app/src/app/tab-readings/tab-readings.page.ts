@@ -1,5 +1,4 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import * as Chart from 'chart.js';
 import { EnergyService } from '../services/energy-service.service';
 import * as Highcharts from 'highcharts';
 
