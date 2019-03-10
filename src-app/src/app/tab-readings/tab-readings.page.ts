@@ -14,20 +14,25 @@ export class TabReadingsPage {
 
   @ViewChild('chart') private mainChartRef: ElementRef;
 
+  private lastUpdated = null;
   private chartData = [];
 
   constructor(public energyService: EnergyService) { }
 
   public async ionViewWillEnter() {
     if (this.chartData.length === 0) {
-      const data = await this.energyService.getReadingsForDate();
-
-      const filtered = data.filter(item => item.timestamp % 30 === 0);
-
-      this.chartData = filtered;
-      console.log('chart data', this.chartData);
-      this.renderChart();
+      await this.refreshReadings();
     }
+  }
+
+  private async refreshReadings() {
+    const data = await this.energyService.getReadings();
+    this.lastUpdated = Date.now();
+
+    const filtered = data.filter(item => item.timestamp % 30 === 0);
+
+    this.chartData = filtered;
+    this.renderChart();
   }
 
   /**

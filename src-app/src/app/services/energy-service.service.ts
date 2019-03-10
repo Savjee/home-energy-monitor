@@ -72,13 +72,18 @@ export class EnergyService {
     return data;
   }
 
-  public async getReadingsForDate(): Promise<any>{
-    const timestamp = new Date();
-    timestamp.setHours(timestamp.getHours() - 6);
+  public async getReadings(since?: number): Promise<any> {
+    if (!since) {
+      const date = new Date();
+      date.setHours(date.getHours() - 6);
+      since = date.getTime();
+    }
+
+    console.log('since', since);
 
     const data = await this.makeGraphQLRequest(`
       query{
-        realtime(sinceTimestamp: ${Math.floor(timestamp.getTime() / 1000)}){
+        realtime(sinceTimestamp: ${Math.floor(since / 1000)}){
           timestamp, reading
         }
       }`
