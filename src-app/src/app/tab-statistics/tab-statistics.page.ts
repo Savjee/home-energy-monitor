@@ -175,6 +175,8 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
       plotOptions: {
         column: {
           stacking: 'normal',
+          pointPadding: 0,
+          borderWidth: 0
         }
       },
       series: [
