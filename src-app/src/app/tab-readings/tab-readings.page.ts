@@ -74,43 +74,25 @@ export class TabReadingsPage {
     // console.log(this.chartData);
 
     Highcharts.chart(this.mainChart2Ref.nativeElement, {
-      // legend: {
-          // layout: 'vertical',
-          // align: 'right',
-          // verticalAlign: 'middle'
-      // },
       title: {
         text: null,
       },
-
       legend: {
         enabled: false,
       },
-
-      plotOptions: {
-          series: {
-              label: {
-                  connectorAllowed: false
-              },
-            pointStart: 2010,
-        },
-        area: {
-          fillColor: null,
-        }
-      },
-
       chart: {
         type: "line",
         panning: true,
-        zoomType: null,
+        pinchType: 'x',
+        events: {
+          load() {
+            this.xAxis[0].setExtremes(Date.now() - 4 * 60 * 60 * 1000, Date.now())
+          }
+        }
       },
-
       xAxis: {
-        min: Date.now() - 4*60*60*1000,
-        max: Date.now(),
         type: 'datetime',
       },
-
       yAxis: {
         min: 0,
         max: Math.max(...values),
@@ -118,86 +100,18 @@ export class TabReadingsPage {
           text: null,
         }
       },
-
-
-      series: [
-        {
-          type: null,
-          name: 'Usage',
-          color: '#8440FF',
-          data: data
-        }
-      ],
-
+      series: [{
+        type: null,
+        name: 'Usage',
+        color: '#8440FF',
+        data: data
+      }],
       tooltip: {
+        // enabled: false,
         valueSuffix: 'W',
         followTouchMove: false,
       },
-
-      responsive: {
-          rules: [{
-              condition: {
-                  // maxWidth: 500
-              },
-              chartOptions: {
-                  // legend: {
-                      // layout: 'horizontal',
-                      // align: 'center',
-                      // verticalAlign: 'bottom'
-                  // }
-              }
-          }]
-      }
-
-  });
-
-    // const ctx = this.mainChartRef.nativeElement.getContext('2d');
-    // new Chart(ctx, {
-    //   type: 'line',
-    //   data: {
-    //     labels: labels,
-    //     datasets: [
-    //       {
-    //         'label': 'Test',
-    //         data: data,
-    //         pointRadius: 0,
-    //         borderColor: '#8440FF',
-    //         fill: false,
-    //       }
-    //     ]
-    //   },
-    //   options: {
-    //     tooltips: { enabled: false },
-    //     animation: {
-    //       duration: 0, // general animation time
-    //     },
-    //     legend: { display: false },
-    //     layout: {
-    //       padding: {
-    //         top: 10,
-    //       }
-    //     },
-
-    //     responsive: true,
-    //     maintainAspectRatio: false,
-    //     scales: {
-    //       xAxes: [{
-    //         type: 'time',
-    //         time: {
-    //           displayFormats: {
-    //             minute: 'hh:mm'
-    //           }
-    //         }
-    //       }],
-    //       yAxes: [{ ticks: { min: 0 } }]
-    //     },
-    //     elements: {
-    //       line: {
-    //           // tension: 0, // disables bezier curves
-    //       }
-    //     }
-    //   }
-    // });
+    });
   }
 
   /**
