@@ -14,24 +14,39 @@ export class TabReadingsPage {
 
   @ViewChild('chart') private mainChartRef: ElementRef;
 
+  // The JS timestamp of when we last updated the data in the chart
   private lastUpdated = null;
+
+  // Data that is used to plot the chart
   private chartData = [];
 
   constructor(public energyService: EnergyService) { }
 
   public async ionViewWillEnter() {
+    // If we don't have any data in memory, go out and fetch them
     if (this.chartData.length === 0) {
       await this.refreshReadings();
+      return;
+    }
+
+    // If the data we have is older then 30 minutes, refresh them!
+    if (this.lastUpdated < Date.now() - 30*60*1000) {
+      await this.refreshReadings();
+      return;
     }
   }
 
+  /**
+   * Refreshes the data in the graph. If we already have downloaded data before,
+   * it only fetches new data, after the lastUpdated timestamp.
+   */
   private async refreshReadings() {
-    const data = await this.energyService.getReadings();
+    const data = await this.energyService.getReadings(this.lastUpdated);
     this.lastUpdated = Date.now();
 
     const filtered = data.filter(item => item.timestamp % 30 === 0);
+    this.chartData = this.chartData.concat(filtered);
 
-    this.chartData = filtered;
     this.renderChart();
   }
 
