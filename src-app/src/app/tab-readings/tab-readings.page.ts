@@ -13,12 +13,10 @@ export class TabReadingsPage {
   public showForwardArrow = false;
 
   @ViewChild('chart') private mainChartRef: ElementRef;
-  @ViewChild('chart2') private mainChart2Ref: ElementRef;
+
   private chartData = [];
 
-
   constructor(public energyService: EnergyService) { }
-
 
   public async ionViewWillEnter() {
     if (this.chartData.length === 0) {
@@ -71,9 +69,7 @@ export class TabReadingsPage {
     const data = this.chartData.map(item => [item.timestamp * 1000, item.reading]);
     const values = data.map(item => item[1]);
 
-    // console.log(this.chartData);
-
-    Highcharts.chart(this.mainChart2Ref.nativeElement, {
+    Highcharts.chart(this.mainChartRef.nativeElement, {
       title: {
         text: null,
       },
