@@ -6,9 +6,8 @@
       <ion-title>Home</ion-title>
     </ion-toolbar>
   </ion-header>
-  <div [class.invisible]="energyService.isLoading() === false">
-    <ion-progress-bar type="indeterminate" ></ion-progress-bar>
-  </div>
+
+  <app-loading-indicator [show]="energyService.isLoading()"></app-loading-indicator>
 
   <ion-content padding>
 

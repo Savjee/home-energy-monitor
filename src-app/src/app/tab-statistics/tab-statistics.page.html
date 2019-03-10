@@ -14,8 +14,9 @@
           </ion-segment-button>
         </ion-segment>
   </ion-toolbar>
-
 </ion-header>
+
+<app-loading-indicator [show]="energyService.isLoading()"></app-loading-indicator>
 
 <ion-content padding [class.hidden]="activeSegmentControl !== '30days'">
       <ion-card-subtitle>Breakdown per day</ion-card-subtitle>

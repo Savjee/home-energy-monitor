@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Readings</ion-title>
-    <ion-spinner *ngIf="energyService.isLoading()"></ion-spinner>
   </ion-toolbar>
+
   <ion-toolbar class="datePicker">
     <ion-icon name="arrow-back" slot="start" (click)="goToYesterday()"></ion-icon>
 
@@ -13,6 +13,9 @@
     <ion-icon name="arrow-forward" slot="end" (click)="goToTomorrow()" *ngIf="showForwardArrow"></ion-icon>
   </ion-toolbar>
 </ion-header>
+
+<app-loading-indicator [show]="energyService.isLoading()"></app-loading-indicator>
+
 
 <ion-content [scrollX]="false" [scrollY]="false">
   <div class="graph-wrapper">
