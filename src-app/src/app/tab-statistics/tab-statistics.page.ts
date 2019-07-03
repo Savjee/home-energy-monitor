@@ -2,6 +2,7 @@ import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angula
 import { EnergyService } from '../services/energy-service.service';
 import * as Highcharts from 'highcharts';
 import { DecimalPipe } from '@angular/common';
+import { ChartDefaults } from '../utils/chart-defaults';
 
 @Component({
   selector: 'app-tab-statistics',
@@ -12,6 +13,7 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
 
   @ViewChild('usageChart') private usageChartRef: ElementRef;
   @ViewChild('dayVsNight') private dayVsNightChartRef: ElementRef;
+  @ViewChild('yearlyChart') private yearlyChartRef: ElementRef;
 
   public activeSegmentControl = "30days";
 
@@ -24,6 +26,7 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
   // network requests for. This to prevent multiple calls to the backend.
   private segmentsRendered = {
     '30days': false,
+    '12months': false,
   }
 
   constructor(public energyService: EnergyService, private decimalPipe: DecimalPipe) { }
@@ -44,6 +47,10 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
 
     if (this.activeSegmentControl === '30days') {
       this.segment30daysWasOpened();
+    }
+
+    if (this.activeSegmentControl === '12months') {
+      this.segmentYearlyOverviewWasOpened();
     }
   }
 
@@ -80,6 +87,17 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     this.segmentsRendered["30days"] = true;
   }
 
+  private async segmentYearlyOverviewWasOpened() {
+    if (this.segmentsRendered['12months']) {
+      return;
+    }
+
+    setTimeout(async () => {
+      await this.drawYearlyOverviewChart();
+      this.segmentsRendered["12months"] = true;
+    }, 0);
+  }
+
   private formatTimestampForChartAxis(rawTimestamp){
     const date = new Date(rawTimestamp * 1000);
     const months = ["Jan", 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -99,6 +117,36 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     this.moreStats.total_30days = total;
   }
 
+  private async drawYearlyOverviewChart() {
+    await this.energyService.getYearlyStats();
+
+    Highcharts.chart(this.yearlyChartRef.nativeElement, {
+      ...ChartDefaults,
+      chart: {
+          type: 'bar'
+      },
+      xAxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
+      },
+      yAxis: {
+        visible: false,
+      },
+      plotOptions: {
+        series: {
+            color: '#8440FF',
+            stacking: 'normal'
+          }
+      },
+      series: [
+        {
+          type: 'bar',
+          name: 'All months',
+          data: [5, 3, 4, 7, 2, 0, 0, 0, 0, 0, 0, 0]
+        },
+      ],
+    });
+  }
+
   /**
    * Draw the pie chart that shows the difference between day and night usage.
    */
@@ -106,11 +154,9 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     const self = this;
 
     Highcharts.chart(this.dayVsNightChartRef.nativeElement, {
+      ...ChartDefaults,
       chart: {
         type: 'pie'
-      },
-      title: {
-        text: null,
       },
       plotOptions:{
         pie: {
@@ -147,20 +193,14 @@ export class TabStatisticsPage implements OnInit, AfterViewInit {
     const self = this;
 
     Highcharts.chart(this.usageChartRef.nativeElement, {
+      ...ChartDefaults,
       chart: {
         type: 'column',
-      },
-      title: {
-        text: null,
-      },
-      legend:{
-        enabled: false,
       },
       xAxis:{
         categories: data.data.usageData.map(el => this.formatTimestampForChartAxis(el.timestamp)),
       },
       yAxis:{
-        min: 0,
         allowDecimals: false,
         title:{
           text: null,

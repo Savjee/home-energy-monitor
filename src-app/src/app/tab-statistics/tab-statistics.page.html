@@ -43,5 +43,7 @@
 </ion-content>
 
 <ion-content padding [class.hidden]="activeSegmentControl !== '12months'">
-  No graphs yet
+  <div class="full-graph-wrapper">
+    <div #yearlyChart class="chart fullheight"></div>
+  </div>
 </ion-content>

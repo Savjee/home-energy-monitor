@@ -1,6 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { EnergyService } from '../services/energy-service.service';
 import * as Highcharts from 'highcharts';
+import { ChartDefaults } from '../utils/chart-defaults';
 
 @Component({
   selector: 'app-tab-readings',
@@ -90,12 +91,7 @@ export class TabReadingsPage {
     const values = data.map(item => item[1]);
 
     Highcharts.chart(this.mainChartRef.nativeElement, {
-      title: {
-        text: null,
-      },
-      legend: {
-        enabled: false,
-      },
+      ...ChartDefaults,
       chart: {
         type: "line",
         panning: true,
@@ -110,7 +106,6 @@ export class TabReadingsPage {
         type: 'datetime',
       },
       yAxis: {
-        min: 0,
         max: Math.max(...values),
         title: {
           text: null,
@@ -123,7 +118,6 @@ export class TabReadingsPage {
         data: data
       }],
       tooltip: {
-        // enabled: false,
         valueSuffix: 'W',
         followTouchMove: false,
       },

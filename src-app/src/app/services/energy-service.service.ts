@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ToastController } from '@ionic/angular';
+import { start } from 'repl';
 
 @Injectable({
   providedIn: 'root'
@@ -43,6 +44,57 @@ export class EnergyService {
 
     console.log('Fetched stats:', data);
     return data;
+  }
+
+  public async getYearlyStats(): Promise<any>{
+    const startDate = new Date();
+    startDate.setDate(1);
+    startDate.setMonth(0);
+    startDate.setHours(0);
+    startDate.setMinutes(0);
+
+    const start = Math.floor(startDate.getTime() / 1000);
+    const end = Math.ceil(Date.now() / 1000);
+
+    const data = await this.makeGraphQLRequest(`
+      query{
+        usageData(startDate:${start}, endDate:${end}){
+          timestamp,
+          dayUse,
+          nightUse,
+        }
+      }
+    `);
+
+    console.log('yearly stats', data);
+
+    const beginDates = [];
+    const outputData = [];
+
+    for (let i = 0; i <= 11; i++){
+      startDate.setMonth(i);
+
+      beginDates.push(
+        Math.floor(startDate.getTime() / 1000)
+      );
+    }
+
+    for (let i = 0; i <= 11; i++){
+      const readingsInMonth = data.data.usageData.filter(
+        item => item.timestamp > beginDates[i] && item.timestamp < beginDates[i + 1]
+      );
+
+      if (readingsInMonth.length === 0) {
+        outputData.push(0);
+        continue;
+      }
+
+      console.log(readingsInMonth);
+      const total = readingsInMonth.reduce((total, currentVal) => total + currentVal.dayUse + currentVal.nightUse);
+      outputData.push(total);
+    }
+
+    console.log(outputData);
   }
 
   public async getHomePageStatistics(all?: boolean): Promise<any>{
@@ -144,6 +196,6 @@ export class EnergyService {
   }
 }
 
-export interface MainStats{
+export interface MainStats {
   data: any;
 }
