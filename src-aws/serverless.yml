@@ -2,7 +2,7 @@ service: xd-home-energy-monitor
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   stage: prod
   region: eu-west-1
   profile: serverless-personal
