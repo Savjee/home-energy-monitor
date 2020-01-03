@@ -3,7 +3,7 @@
 #include "WiFi.h"
 #include <driver/adc.h>
 #include "config/config.h"
-#include "classes/AWSConnector.cpp"
+#include "functions/AWSConnector.cpp"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
