@@ -37,7 +37,7 @@ unsigned long lastMeasurement = 0;
 void goToDeepSleep()
 {
   Serial.println("Going to sleep...");
-  esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * 60L * 1000000L);
+  esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
 }
 
