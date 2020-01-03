@@ -21,10 +21,6 @@ WiFiUDP ntpUDP;
 // TODO: this does not take timezones into account! Only UTC for now.
 NTPClient timeClient(ntpUDP, "pool.ntp.org", /* offset= */ 3600, /* update interval = */ 60000);
 
-// Wifi credentials
-const char *WIFI_NETWORK = "***REMOVED***";
-const char *WIFI_PASSWORD = "***REMOVED***";
-
 // Place to store local measurements before sending them off to AWS
 short measurements[LOCAL_MEASUREMENTS];
 short measureIndex = 0;
