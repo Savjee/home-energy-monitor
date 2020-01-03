@@ -1,10 +1,19 @@
 #ifndef CLASS_AWSCONNECTOR
 #define CLASS_AWSCONNECTOR
 
+#include <Arduino.h>
 #include "../config/config.h"
-#include "../config/aws_iot_certificates.h"
 #include <WiFiClientSecure.h>
 #include <MQTTClient.h>
+
+extern const uint8_t aws_root_ca_pem_start[] asm("_binary_certificates_amazonrootca1_pem_start");
+extern const uint8_t aws_root_ca_pem_end[] asm("_binary_certificates_amazonrootca1_pem_end");
+
+extern const uint8_t certificate_pem_crt_start[] asm("_binary_certificates_certificate_pem_crt_start");
+extern const uint8_t certificate_pem_crt_end[] asm("_binary_certificates_certificate_pem_crt_end");
+
+extern const uint8_t private_pem_key_start[] asm("_binary_certificates_private_pem_key_start");
+extern const uint8_t private_pem_key_end[] asm("_binary_certificates_private_pem_key_end");
 
 class AWSConnector
 {
