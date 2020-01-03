@@ -8,6 +8,7 @@
 
 extern Adafruit_SSD1306 display;
 extern DisplayValues gDisplayValues;
+extern short measureIndex;
 
 void drawTime(){
   display.setTextSize(1);
@@ -39,6 +40,11 @@ void drawSignalStrength(){
   if(gDisplayValues.wifi_strength >= -50){
     display.fillRect(X+X_SPACING*3, 8-8, 1, 8, WHITE);
   }
+}
+
+void drawMeasurementProgress(){
+  const byte Y = SCREEN_WIDTH - 20;
+  display.drawRect(0, Y, measureIndex*2, 2, WHITE);
 }
 
 /**

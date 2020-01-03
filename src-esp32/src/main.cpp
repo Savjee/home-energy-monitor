@@ -12,27 +12,22 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
-
+AWSConnector awsConnector;
+EnergyMonitor emon1;
 WiFiUDP ntpUDP;
 
 // TODO: this does not take timezones into account! Only UTC for now.
 NTPClient timeClient(ntpUDP, "pool.ntp.org", /* offset= */ 3600, /* update interval = */ 60000);
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-// Create an instance of our AWS Connector
-AWSConnector awsConnector;
-
 // Wifi credentials
 const char *WIFI_NETWORK = "***REMOVED***";
 const char *WIFI_PASSWORD = "***REMOVED***";
 
-EnergyMonitor emon1;
-
-short measurements[30];
+// Place to store local measurements before sending them off to AWS
+short measurements[LOCAL_MEASUREMENTS];
 short measureIndex = 0;
-unsigned long lastMeasurement = 0;
 
 void goToDeepSleep()
 {
@@ -41,17 +36,69 @@ void goToDeepSleep()
   esp_deep_sleep_start();
 }
 
+/**
+ * TASK: Upload measurements to AWS. This only works when there are enough
+ * local measurements. It's called by the measurement function.
+ */
+void uploadMeasurementsToAWS(void * parameter){
+    if(!WiFi.isConnected())
+    {
+      Serial.println("Can't send to AWS without WiFi! Discarding...");
+      measureIndex = 0;
+    }
+
+    if (measureIndex == LOCAL_MEASUREMENTS)
+    {
+      String msg = "{\"readings\": [";
+
+      for (short i = 0; i < LOCAL_MEASUREMENTS-1; i++){
+        msg += measurements[i];
+        msg += ",";
+      }
+
+      msg += measurements[LOCAL_MEASUREMENTS-1];
+      msg += "]}";
+
+      Serial.println(msg);
+
+      awsConnector.sendMessage(msg);
+      measureIndex = 0;
+    }
+
+    // Task is done!
+    vTaskDelete(NULL);
+}
+
 void measureElectricity(void * parameter)
 {
     for(;;){
       Serial.println("Taking measurement...");
-      emon1.calcVI(10, 1000);         // Calculate all. No.of half wavelengths (crossings), time-out
-      emon1.serialprint();
+      long start = millis();
 
-      gDisplayValues.amps = emon1.Irms;
+      double amps = emon1.calcIrms(1480);
+
+      gDisplayValues.amps = amps;
       gDisplayValues.watt = gDisplayValues.amps * HOME_VOLTAGE;
 
-      vTaskDelay(1000 / portTICK_PERIOD_MS);
+      measurements[measureIndex] = amps;
+      measureIndex++;
+
+      if(measureIndex == LOCAL_MEASUREMENTS){
+          xTaskCreate(
+            uploadMeasurementsToAWS,
+            "Upload measurements to AWS",
+            10000,             // Stack size (bytes)
+            NULL,             // Parameter
+            1,                // Task priority
+            NULL              // Task handle
+          );
+      }
+
+      long end = millis();
+
+      // Schedule the task to run again in 1 second (while
+      // taking into account how long measurement took)
+      vTaskDelay((1000-(end-start)) / portTICK_PERIOD_MS);
     }    
 }
 
@@ -75,11 +122,12 @@ void updateDisplay(void * parameter){
       drawTime();
       drawSignalStrength();
       drawAmpsWatts();
+      drawMeasurementProgress();
     }
 
     display.display();
-   
-    // Sleep for 1 second, then update display again!
+
+    // Sleep for 2 seconds, then update display again!
     vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
 }
@@ -87,11 +135,10 @@ void updateDisplay(void * parameter){
 void connectToWiFi()
 {
   gDisplayValues.currentState = CONNECTING_WIFI;
-  // updateDisplay();
 
   Serial.print("Connecting to WiFi... ");
   WiFi.mode(WIFI_STA);
-  WiFi.setHostname("esp32-energy-monitor-2");
+  WiFi.setHostname(DEVICE_NAME);
   WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
 
   unsigned long startAttemptTime = millis();
@@ -133,12 +180,24 @@ void fetchTimeFromNTP(void * parameter){
   }
 }
 
+void loopAWSMQTTConnection(void * parameters){
+  for(;;){
+    awsConnector.loop();
+
+    // Sleep for half a second, then loop again
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+  }
+}
+
+/**
+ * TASK: Get the current WiFi signal strength and write it to the
+ * displayValues so it can be shown by the updateDisplay task
+ */
 void updateWiFiSignalStrength(void * parameter){
   for(;;){
     if(WiFi.isConnected()){
       Serial.println("Updating WiFi signal strength...");
       gDisplayValues.wifi_strength = WiFi.RSSI();
-      Serial.println("--> Done WiFi signal strength update");
     }
 
     // Sleep for 10 seconds
@@ -170,12 +229,6 @@ void setup()
   display.setTextColor(WHITE);
   display.setTextWrap(false);
 
-  // TEST CODE
-  // gDisplayValues.currentState = UP;
-  // gDisplayValues.amps = 6.76;
-  // gDisplayValues.watt = 230*6.76;
-  // gDisplayValues.time = "13:37";
-
   // TASK: Update the display every second
   //       This is pinned to the same core as Arduino
   //       because it would otherwise corrupt the OLED
@@ -193,10 +246,10 @@ void setup()
   xTaskCreate(
     measureElectricity,
     "Measure electricity",  // Task name
-    10000,            // Stack size (bytes)
-    NULL,             // Parameter
-    1,                // Task priority
-    NULL              // Task handle
+    10000,                  // Stack size (bytes)
+    NULL,                   // Parameter
+    4,                      // Task priority
+    NULL                    // Task handle
   );
 
   // TASK: update time from NTP server.
@@ -205,7 +258,7 @@ void setup()
     "Update NTP time",
     10000,            // Stack size (bytes)
     NULL,             // Parameter
-    2,                // Task priority
+    1,                // Task priority
     NULL              // Task handle
   );
 
@@ -213,17 +266,28 @@ void setup()
   xTaskCreate(
     updateWiFiSignalStrength,
     "Update WiFi strength",
-    1000,            // Stack size (bytes)
+    1000,             // Stack size (bytes)
     NULL,             // Parameter
-    2,                // Task priority
+    1,                // Task priority
     NULL              // Task handle
   );
+
   // Connect to WiFi and start the NTP client  
   connectToWiFi();
+  awsConnector.setup();
   timeClient.begin();
 
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
+
+  xTaskCreate(
+    loopAWSMQTTConnection,
+    "Loop MQTT",      // Task name
+    10000,            // Stack size (bytes)
+    NULL,             // Parameter
+    5,                // Task priority
+    NULL              // Task handle
+  );
 }
 
 void loop()
