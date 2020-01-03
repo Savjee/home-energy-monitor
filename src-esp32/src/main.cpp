@@ -55,7 +55,6 @@ EnergyMonitor emon1;
 short measurements[30];
 short measureIndex = 0;
 unsigned long lastMeasurement = 0;
-unsigned long timeFinishedSetup = 0;
 
 void goToDeepSleep()
 {
@@ -257,17 +256,10 @@ void setup()
 
   updateDisplay();
   connectToWiFi();
-
   timeClient.begin();
+
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
-
-
-  // lcd.setCursor(3, 0);
-  // lcd.print("AWS connect   ");
-  // awsConnector.setup();
-
-  timeFinishedSetup = millis();
 }
 
 void loop()
