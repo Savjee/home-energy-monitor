@@ -36,7 +36,9 @@ struct DisplayValues {
 DisplayValues gDisplayValues;
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+
+// TODO: this does not take timezones into account! Only UTC for now.
+NTPClient timeClient(ntpUDP, "pool.ntp.org", /* offset= */ 3600, /* update interval = */ 60000);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -257,9 +259,6 @@ void setup()
   connectToWiFi();
 
   timeClient.begin();
-  timeClient.setTimeOffset(7200); // GMT +1
-  timeClient.setUpdateInterval(60 * 1000); // Update every 60 seconds
-  
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
 
