@@ -149,12 +149,14 @@ void updateWiFiSignalStrength(void * parameter){
 void setup()
 {
   Serial.begin(115200);
+
+  // Setup the ADC
   adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
   analogReadResolution(ADC_BITS);
   pinMode(ADC_INPUT, INPUT);
 
-  Wire.begin(5, 4); // i2c for the OLED panel
-
+  // i2c for the OLED panel
+  Wire.begin(5, 4); 
 
   // Initialize the display
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false)) {
@@ -226,13 +228,8 @@ void setup()
 
 void loop()
 {
-  // updateDisplay();
   reconnectWifiIfNeeded();
-  // fetchTimeFromNTP();
-  // measureElectricity();
-  // delay(500);
-
-
+  vTaskDelay(10000 / portTICK_PERIOD_MS);
 
   // unsigned long currentMillis = millis();
 
