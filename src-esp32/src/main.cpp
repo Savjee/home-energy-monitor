@@ -72,11 +72,12 @@ void measureElectricity(void * parameter)
       long start = millis();
 
       double amps = emon1.calcIrms(1480);
+      double watts = amps * HOME_VOLTAGE;
 
       gDisplayValues.amps = amps;
-      gDisplayValues.watt = gDisplayValues.amps * HOME_VOLTAGE;
+      gDisplayValues.watt = watts;
 
-      measurements[measureIndex] = amps;
+      measurements[measureIndex] = watts;
       measureIndex++;
 
       if(measureIndex == LOCAL_MEASUREMENTS){
