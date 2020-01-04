@@ -66,8 +66,8 @@
 
 // Force EmonLib to only use 10bit ADC resolution (even if it detects something
 // else). Might have to bump this up to 12 after some testing?
-#define ADC_BITS    10
-#define ADC_COUNTS  (1<<ADC_BITS)
+// #define ADC_BITS    12
+// #define ADC_COUNTS  (1<<ADC_BITS)
 
 // Check which core Arduino is running on. This is done because updating the 
 // display only works from the Arduino core.
