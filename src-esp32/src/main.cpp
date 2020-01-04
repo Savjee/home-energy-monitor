@@ -85,7 +85,7 @@ void measureElectricity(void * parameter)
             "Upload measurements to AWS",
             10000,             // Stack size (bytes)
             NULL,             // Parameter
-            1,                // Task priority
+            5,                // Task priority
             NULL              // Task handle
           );
       }
