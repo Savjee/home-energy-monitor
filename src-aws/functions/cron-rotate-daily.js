@@ -1,8 +1,10 @@
 'use strict';
 const { dynamoDocClient } = require('../core/aws-connections');
-const { config, deviceName } = require('../core/config');
+const { config } = require('../core/config');
 const { getYesterdayDate, getTodaysDate, writeToS3, writeToDynamoDB, parseDynamoDBItemsToCSV} = require('../core/helpers');
 const { calculateKWH } = require('../core/helpers/CalculateKwh');
+
+const deviceName = config.deviceName;
 
 /**
  * Fetches all of yesterday's readings of a certain
