@@ -61,6 +61,7 @@ functions:
   graphql:
     description: GraphQL endpoint to query readings from devices
     handler: functions/graphql/graphql.handler
+    memorySize: 512
     package:
       include:
         - functions/graphql/node_modules/**
