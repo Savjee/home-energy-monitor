@@ -1,10 +1,19 @@
 #ifndef CLASS_AWSCONNECTOR
 #define CLASS_AWSCONNECTOR
 
+#include <Arduino.h>
 #include "../config/config.h"
-#include "../config/aws_iot_certificates.h"
 #include <WiFiClientSecure.h>
 #include <MQTTClient.h>
+
+extern const uint8_t aws_root_ca_pem_start[] asm("_binary_certificates_amazonrootca1_pem_start");
+extern const uint8_t aws_root_ca_pem_end[] asm("_binary_certificates_amazonrootca1_pem_end");
+
+extern const uint8_t certificate_pem_crt_start[] asm("_binary_certificates_certificate_pem_crt_start");
+extern const uint8_t certificate_pem_crt_end[] asm("_binary_certificates_certificate_pem_crt_end");
+
+extern const uint8_t private_pem_key_start[] asm("_binary_certificates_private_pem_key_start");
+extern const uint8_t private_pem_key_end[] asm("_binary_certificates_private_pem_key_end");
 
 class AWSConnector
 {
@@ -32,16 +41,16 @@ class AWSConnector
     }
 
     void sendMessage(String msg){
-      client.publish("***REMOVED***", msg);
+      client.publish(AWS_IOT_TOPIC, msg);
     }
 
   private:
     void connect(){
       int retries = 0;
 
-      net.setCACert(AWS_CERT_CA);
-      net.setCertificate(AWS_CERT_CRT);
-      net.setPrivateKey(AWS_CERT_PRIVATE);
+      net.setCACert((const char *) aws_root_ca_pem_start);
+      net.setCertificate((const char *) certificate_pem_crt_start);
+      net.setPrivateKey((const char *) private_pem_key_start);
 
       // Connect to the MQTT broker
       client.begin(AWS_IOT_ENDPOINT, 8883, net);
@@ -49,7 +58,7 @@ class AWSConnector
       // Try to connect to AWS and count how many times we retried.
       // After reaching the maximum we should stop!
       Serial.print("Connecting to AWS IOT...");
-      while (!client.connect("xd-home-energy-monitor-1") && retries < AWS_MAX_RECONNECT_TRIES) {
+      while (!client.connect(DEVICE_NAME) && retries < AWS_MAX_RECONNECT_TRIES) {
         Serial.print(".");
         delay(AWS_RECONNECT_DELAY);
         retries++;

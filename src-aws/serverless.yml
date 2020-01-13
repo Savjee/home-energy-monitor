@@ -2,7 +2,7 @@ service: xd-home-energy-monitor
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs12.x
   stage: prod
   region: eu-west-1
   profile: serverless-personal
@@ -61,6 +61,7 @@ functions:
   graphql:
     description: GraphQL endpoint to query readings from devices
     handler: functions/graphql/graphql.handler
+    memorySize: 512
     package:
       include:
         - functions/graphql/node_modules/**
