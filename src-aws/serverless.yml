@@ -177,7 +177,7 @@ resources:
                      - Ref: AWS::Region
                      - ":"
                      - Ref: AWS::AccountId
-                     - ":topic/***REMOVED***"
+                     - ":topic/$aws/rules/***REMOVED***"
 
     ###
     # Role that allows the IoT Topic Rule to write items to our

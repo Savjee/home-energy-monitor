@@ -1,5 +1,5 @@
 module.exports.config = {
-	deviceName: '***REMOVED***',
+	deviceName: 'xd-home-energy-monitor-2',
 	
 	dynamoDb: {
 		table: 'xd-home-energy-monitor',
