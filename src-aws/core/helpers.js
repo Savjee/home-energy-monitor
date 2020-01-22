@@ -131,14 +131,19 @@ module.exports.getUsageDataFromDynamoDB = async function(deviceId, startDate, en
     return data.Items;
 }
 
-module.exports.writeToS3 = function(filename, contents){
+module.exports.writeToS3 = async function(filename, contents){
 	const { s3 } = require('./aws-connections');
 	const { config } = require('./config');
+	const util = require('util');
+	const zlib = require('zlib');
+	const gzip = util.promisify(zlib.gzip);
+
+	const compressedBody = await gzip(contents);
 
 	return s3.putObject({
-        Body: contents,
+        Body: compressedBody,
         Bucket: config.s3.bucket,
-        Key: filename
+        Key: filename + '.gz'
     }).promise();
 }
 
