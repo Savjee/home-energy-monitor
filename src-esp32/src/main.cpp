@@ -12,6 +12,7 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 #include "tasks/updateDisplay.cpp"
+#include "tasks/wifi-connection.cpp"
 #include "tasks/wifi-update-signalstrength.cpp"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -101,38 +102,6 @@ void measureElectricity(void * parameter)
     }    
 }
 
-void connectToWiFi()
-{
-  gDisplayValues.currentState = CONNECTING_WIFI;
-
-  Serial.print("Connecting to WiFi... ");
-  WiFi.mode(WIFI_STA);
-  WiFi.setHostname(DEVICE_NAME);
-  WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
-
-  unsigned long startAttemptTime = millis();
-
-  // Keep looping while we're not connected and haven't reached the timeout
-  while (WiFi.status() != WL_CONNECTED && 
-          millis() - startAttemptTime < WIFI_TIMEOUT){}
-
-  // Make sure that we're actually connected, otherwise go to deep sleep
-  if(WiFi.status() != WL_CONNECTED){
-    Serial.println("FAILED");
-    goToDeepSleep();
-  }
-
-  Serial.println("OK");
-  Serial.println(WiFi.localIP());
-  gDisplayValues.currentState = UP;
-}
-
-void reconnectWifiIfNeeded(){
-  if(WiFi.status() != WL_CONNECTED){
-    connectToWiFi();
-  }
-}
-
 void fetchTimeFromNTP(void * parameter){
   for(;;){
     Serial.println("Updating NTP time...");
@@ -183,6 +152,17 @@ void setup()
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
+
+  xTaskCreatePinnedToCore(
+    keepWiFiAlive,    // Function to call
+    "keepWiFiAlive",  // Task name
+    20000,            // Stack size (bytes)
+    NULL,             // Parameter
+    1,                // Task priority
+    NULL,             // Task handle
+    ARDUINO_RUNNING_CORE
+  );
+
 
   // TASK: Update the display every second
   //       This is pinned to the same core as Arduino
@@ -247,6 +227,6 @@ void setup()
 
 void loop()
 {
-  reconnectWifiIfNeeded();
-  vTaskDelay(10000 / portTICK_PERIOD_MS);
+  // reconnectWifiIfNeeded();
+  // vTaskDelay(10000 / portTICK_PERIOD_MS);
 }
