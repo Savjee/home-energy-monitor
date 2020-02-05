@@ -40,7 +40,7 @@ void keepWiFiAlive(void * parameter){
 
         // Make sure that we're actually connected, otherwise go to deep sleep
         if(WiFi.status() != WL_CONNECTED){
-            Serial.println("FAILED");
+            Serial.println("[WIFI] FAILED");
             goToDeepSleep();
         }
 

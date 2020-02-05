@@ -15,7 +15,7 @@ extern DisplayValues gDisplayValues;
  */
 void updateDisplay(void * parameter){
   for (;;){
-    Serial.println("Updating display...");
+    Serial.println("[LCD] Updating...");
     display.clearDisplay();
 
     if(gDisplayValues.currentState == CONNECTING_WIFI || 

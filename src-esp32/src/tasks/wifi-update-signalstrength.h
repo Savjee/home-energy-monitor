@@ -14,7 +14,7 @@ extern DisplayValues gDisplayValues;
 void updateWiFiSignalStrength(void * parameter){
   for(;;){
     if(WiFi.isConnected()){
-      Serial.println("Updating WiFi signal strength...");
+      Serial.println("[WIFI] Updating signal strength...");
       gDisplayValues.wifi_strength = WiFi.RSSI();
     }
 

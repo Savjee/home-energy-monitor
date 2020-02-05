@@ -16,7 +16,7 @@ extern short measureIndex;
 void measureElectricity(void * parameter)
 {
     for(;;){
-      Serial.println("Taking measurement...");
+      Serial.println("[ENERGY] Measuring...");
       long start = millis();
 
       double amps = emon1.calcIrms(1480);
