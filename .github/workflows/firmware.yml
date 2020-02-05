@@ -26,6 +26,7 @@ jobs:
     - name: Build
       run: |
         cd src-esp32
+        cp src/config/config.dist.h src/config/config.h
         mkdir -p certificates
         echo "a" > certificates/amazonrootca1.pem
         echo "a" > certificates/certificate.pem.crt

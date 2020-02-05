@@ -61,13 +61,18 @@
  */
 #define AWS_IOT_ENDPOINT "**** YOUR AWS IOT ENDPOINT ****"
 #define AWS_IOT_TOPIC "**** YOUR AWS IOT RULE ARN ****"
-#define AWS_RECONNECT_DELAY 200
-#define AWS_MAX_RECONNECT_TRIES 50
 
-// Force EmonLib to only use 10bit ADC resolution (even if it detects something
-// else). Might have to bump this up to 12 after some testing?
-#define ADC_BITS    10
-#define ADC_COUNTS  (1<<ADC_BITS)
+#define MQTT_CONNECT_DELAY 200
+#define MQTT_CONNECT_TIMEOUT 20000 // 20 seconds
+
+/**
+ * Wether or not you want to enable Home Assistant integration
+ */
+#define HA_ENABLED false
+#define HA_ADDRESS "***REMOVED***"
+#define HA_PORT 8883
+#define HA_USER "mqtt"
+#define HA_PASSWORD "***REMOVED***"
 
 // Check which core Arduino is running on. This is done because updating the 
 // display only works from the Arduino core.
