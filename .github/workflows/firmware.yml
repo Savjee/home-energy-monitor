@@ -3,8 +3,8 @@ name: firmware
 on:
   pull_request:
   push:
-#    paths:
-#      - 'src-esp32/**'
+    paths:
+      - 'src-esp32/**'
 
 jobs:
   build:
