@@ -1,0 +1,31 @@
+name: firmware
+
+on:
+  pull_request:
+  push:
+    paths:
+      - 'src-esp32/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Setup Python
+      uses: actions/setup-python@master
+      with:
+        python-version: '3.x'
+
+    - name: Install Platform IO
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U platformio
+
+    - name: Build
+      run: |
+        cd src-esp32
+        platformio run
+      env:
+        CI: true
