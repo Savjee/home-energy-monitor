@@ -12,6 +12,7 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 #include "tasks/updateDisplay.cpp"
+#include "tasks/updateWiFiSignalStrength.cpp"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
@@ -157,21 +158,7 @@ void loopAWSMQTTConnection(void * parameters){
   }
 }
 
-/**
- * TASK: Get the current WiFi signal strength and write it to the
- * displayValues so it can be shown by the updateDisplay task
- */
-void updateWiFiSignalStrength(void * parameter){
-  for(;;){
-    if(WiFi.isConnected()){
-      Serial.println("Updating WiFi signal strength...");
-      gDisplayValues.wifi_strength = WiFi.RSSI();
-    }
 
-    // Sleep for 10 seconds
-    vTaskDelay(10000 / portTICK_PERIOD_MS);
-  }
-}
 
 void setup()
 {
