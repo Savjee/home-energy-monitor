@@ -110,16 +110,13 @@ void setup()
     NULL                    // Task handle
   );
 
-  // Start the NTP client  
-  timeClient.begin();
-
   // ----------------------------------------------------------------
   // TASK: update time from NTP server.
   // ----------------------------------------------------------------
   xTaskCreate(
     fetchTimeFromNTP,
     "Update NTP time",
-    10000,            // Stack size (bytes)
+    5000,            // Stack size (bytes)
     NULL,             // Parameter
     1,                // Task priority
     NULL              // Task handle
