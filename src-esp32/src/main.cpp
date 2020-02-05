@@ -3,7 +3,6 @@
 #include "WiFi.h"
 #include <driver/adc.h>
 #include "config/config.h"
-#include "functions/drawFunctions.h"
 #include "config/enums.h"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -49,14 +48,21 @@ void setup()
     goToDeepSleep();
   }
 
-  display.clearDisplay(); // Clear Adafruit screen
+  // Init the display
+  display.clearDisplay();
   display.setRotation(3);
   display.setTextSize(1);
   display.setTextColor(WHITE);
   display.setTextWrap(false);
 
+  // Initialize emon library
+  emon1.current(ADC_INPUT, 30);
+
+  // ----------------------------------------------------------------
+  // TASK: Connect to WiFi & keep the connection alive.
+  // ----------------------------------------------------------------
   xTaskCreatePinnedToCore(
-    keepWiFiAlive,    // Function to call
+    keepWiFiAlive,
     "keepWiFiAlive",  // Task name
     20000,            // Stack size (bytes)
     NULL,             // Parameter
@@ -77,20 +83,24 @@ void setup()
     NULL              // Task handle
   );
 
+  // ----------------------------------------------------------------
   // TASK: Update the display every second
   //       This is pinned to the same core as Arduino
   //       because it would otherwise corrupt the OLED
+  // ----------------------------------------------------------------
   xTaskCreatePinnedToCore(
-    updateDisplay,    // Function to call
+    updateDisplay,
     "UpdateDisplay",  // Task name
     20000,            // Stack size (bytes)
     NULL,             // Parameter
-    1,                // Task priority
+    3,                // Task priority
     NULL,             // Task handle
     ARDUINO_RUNNING_CORE
   );
 
+  // ----------------------------------------------------------------
   // Task: measure electricity consumption ;)
+  // ----------------------------------------------------------------
   xTaskCreate(
     measureElectricity,
     "Measure electricity",  // Task name
@@ -115,23 +125,22 @@ void setup()
     NULL              // Task handle
   );
 
+  // ----------------------------------------------------------------
   // TASK: update WiFi signal strength
+  // ----------------------------------------------------------------
   xTaskCreate(
     updateWiFiSignalStrength,
     "Update WiFi strength",
     1000,             // Stack size (bytes)
     NULL,             // Parameter
-    1,                // Task priority
+    2,                // Task priority
     NULL              // Task handle
   );
 
-  // Initialize emon library
-  emon1.current(ADC_INPUT, 30);
 
 }
 
 void loop()
 {
-  // reconnectWifiIfNeeded();
-  // vTaskDelay(10000 / portTICK_PERIOD_MS);
+  vTaskDelay(10000 / portTICK_PERIOD_MS);
 }
