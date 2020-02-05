@@ -31,39 +31,6 @@ void goToDeepSleep()
   esp_deep_sleep_start();
 }
 
-void measureElectricity(void * parameter)
-{
-    for(;;){
-      Serial.println("Taking measurement...");
-      long start = millis();
-
-      double amps = emon1.calcIrms(1480);
-      double watts = amps * HOME_VOLTAGE;
-
-      gDisplayValues.amps = amps;
-      gDisplayValues.watt = watts;
-
-      measurements[measureIndex] = watts;
-      measureIndex++;
-
-      if(measureIndex == LOCAL_MEASUREMENTS){
-          xTaskCreate(
-            uploadMeasurementsToAWS,
-            "Upload measurements to AWS",
-            10000,             // Stack size (bytes)
-            NULL,             // Parameter
-            5,                // Task priority
-            NULL              // Task handle
-          );
-      }
-
-      long end = millis();
-
-      // Schedule the task to run again in 1 second (while
-      // taking into account how long measurement took)
-      vTaskDelay((1000-(end-start)) / portTICK_PERIOD_MS);
-    }    
-}
 void setup()
 {
   Serial.begin(115200);
