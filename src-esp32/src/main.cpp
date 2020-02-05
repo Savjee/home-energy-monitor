@@ -8,8 +8,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <WiFiUdp.h>
-#include <NTPClient.h>
 
 #include "tasks/updateDisplay.h"
 #include "tasks/fetch-time-from-ntp.h"
@@ -21,10 +19,6 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
 EnergyMonitor emon1;
-WiFiUDP ntpUDP;
-
-// TODO: this does not take timezones into account! Only UTC for now.
-NTPClient timeClient(ntpUDP, "pool.ntp.org", /* offset= */ 3600, /* update interval = */ 60000);
 
 // Place to store local measurements before sending them off to AWS
 short measurements[LOCAL_MEASUREMENTS];
@@ -70,24 +64,6 @@ void measureElectricity(void * parameter)
       vTaskDelay((1000-(end-start)) / portTICK_PERIOD_MS);
     }    
 }
-
-void fetchTimeFromNTP(void * parameter){
-  for(;;){
-    Serial.println("Updating NTP time...");
-    reconnectWifiIfNeeded();
-
-    timeClient.update();
-    String timestring = timeClient.getFormattedTime();
-    short tIndex = timestring.indexOf("T");
-    gDisplayValues.time = timestring.substring(tIndex + 1, timestring.length() -3);
-    Serial.println("--> Done NTP update");
-
-    // Sleep for a minute before checking again
-    vTaskDelay(60000 / portTICK_PERIOD_MS);
-  }
-}
-
-
 void setup()
 {
   Serial.begin(115200);
@@ -157,7 +133,12 @@ void setup()
     NULL                    // Task handle
   );
 
+  // Start the NTP client  
+  timeClient.begin();
+
+  // ----------------------------------------------------------------
   // TASK: update time from NTP server.
+  // ----------------------------------------------------------------
   xTaskCreate(
     fetchTimeFromNTP,
     "Update NTP time",
@@ -176,9 +157,6 @@ void setup()
     1,                // Task priority
     NULL              // Task handle
   );
-
-  // Connect to WiFi and start the NTP client  
-  timeClient.begin();
 
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
