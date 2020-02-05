@@ -26,6 +26,11 @@ jobs:
     - name: Build
       run: |
         cd src-esp32
+        mkdir -p certificates
+        touch certificates/amazonrootca1.pem
+        touch certificates/certificate.pem.crt
+        touch certificates/private.pem.key
+        touch certificates/public.pem.key
         platformio run
       env:
         CI: true
