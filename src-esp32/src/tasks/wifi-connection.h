@@ -25,7 +25,7 @@ void keepWiFiAlive(void * parameter){
             continue;
         }
 
-        Serial.print("[WIFI] Connecting");
+        Serial.println("[WIFI] Connecting");
         gDisplayValues.currentState = CONNECTING_WIFI;
 
         WiFi.mode(WIFI_STA);
