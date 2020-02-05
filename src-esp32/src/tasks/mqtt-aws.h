@@ -29,6 +29,11 @@ void keepAWSConnectionAlive(void * parameter){
             continue;
         }
 
+        if(!WiFi.isConnected()){
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            continue;
+        }
+
         // Configure certificates
         AWS_net.setCACert((const char *) aws_root_ca_pem_start);
         AWS_net.setCertificate((const char *) certificate_pem_crt_start);

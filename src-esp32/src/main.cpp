@@ -10,10 +10,13 @@
 #include <Adafruit_SSD1306.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-#include "tasks/updateDisplay.cpp"
-#include "tasks/mqtt-aws.cpp"
-#include "tasks/wifi-connection.cpp"
-#include "tasks/wifi-update-signalstrength.cpp"
+
+#include "tasks/updateDisplay.h"
+#include "tasks/fetch-time-from-ntp.h"
+#include "tasks/mqtt-aws.h"
+#include "tasks/wifi-connection.h"
+#include "tasks/wifi-update-signalstrength.h"
+#include "tasks/measure-electricity.h"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;

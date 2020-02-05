@@ -14,14 +14,12 @@ extern DisplayValues gDisplayValues;
  * parts of the display (or not if it's turned off).
  */
 void updateDisplay(void * parameter){
-  for (;;) // A Task shall never return or exit.
-  {
+  for (;;){
     Serial.println("Updating display...");
     display.clearDisplay();
 
     if(gDisplayValues.currentState == CONNECTING_WIFI || 
-        gDisplayValues.currentState == CONNECTING_AWS)
-    {
+        gDisplayValues.currentState == CONNECTING_AWS){
       drawBootscreen();
     }
     
