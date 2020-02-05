@@ -3,7 +3,6 @@
 #include "WiFi.h"
 #include <driver/adc.h>
 #include "config/config.h"
-#include "functions/AWSConnector.cpp"
 #include "functions/drawFunctions.h"
 #include "config/enums.h"
 #include <Wire.h>
@@ -12,12 +11,12 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 #include "tasks/updateDisplay.cpp"
+#include "tasks/mqtt-aws.cpp"
 #include "tasks/wifi-connection.cpp"
 #include "tasks/wifi-update-signalstrength.cpp"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
-AWSConnector awsConnector;
 EnergyMonitor emon1;
 WiFiUDP ntpUDP;
 
@@ -33,39 +32,6 @@ void goToDeepSleep()
   Serial.println("Going to sleep...");
   esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
-}
-
-/**
- * TASK: Upload measurements to AWS. This only works when there are enough
- * local measurements. It's called by the measurement function.
- */
-void uploadMeasurementsToAWS(void * parameter){
-    if(!WiFi.isConnected())
-    {
-      Serial.println("Can't send to AWS without WiFi! Discarding...");
-      measureIndex = 0;
-    }
-
-    if (measureIndex == LOCAL_MEASUREMENTS)
-    {
-      String msg = "{\"readings\": [";
-
-      for (short i = 0; i < LOCAL_MEASUREMENTS-1; i++){
-        msg += measurements[i];
-        msg += ",";
-      }
-
-      msg += measurements[LOCAL_MEASUREMENTS-1];
-      msg += "]}";
-
-      Serial.println(msg);
-
-      awsConnector.sendMessage(msg);
-      measureIndex = 0;
-    }
-
-    // Task is done!
-    vTaskDelete(NULL);
 }
 
 void measureElectricity(void * parameter)
@@ -118,16 +84,6 @@ void fetchTimeFromNTP(void * parameter){
   }
 }
 
-void loopAWSMQTTConnection(void * parameters){
-  for(;;){
-    awsConnector.loop();
-
-    // Sleep for half a second, then loop again
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-  }
-}
-
-
 
 void setup()
 {
@@ -163,6 +119,17 @@ void setup()
     ARDUINO_RUNNING_CORE
   );
 
+  // ----------------------------------------------------------------
+  // TASK: Connect to AWS & keep the connection alive.
+  // ----------------------------------------------------------------
+  xTaskCreate(
+    keepAWSConnectionAlive,
+    "MQTT-AWS",      // Task name
+    10000,            // Stack size (bytes)
+    NULL,             // Parameter
+    5,                // Task priority
+    NULL              // Task handle
+  );
 
   // TASK: Update the display every second
   //       This is pinned to the same core as Arduino
@@ -208,21 +175,11 @@ void setup()
   );
 
   // Connect to WiFi and start the NTP client  
-  connectToWiFi();
-  awsConnector.setup();
   timeClient.begin();
 
   // Initialize emon library
   emon1.current(ADC_INPUT, 30);
 
-  xTaskCreate(
-    loopAWSMQTTConnection,
-    "Loop MQTT",      // Task name
-    10000,            // Stack size (bytes)
-    NULL,             // Parameter
-    5,                // Task priority
-    NULL              // Task handle
-  );
 }
 
 void loop()
