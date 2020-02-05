@@ -12,7 +12,7 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 #include "tasks/updateDisplay.cpp"
-#include "tasks/updateWiFiSignalStrength.cpp"
+#include "tasks/wifi-update-signalstrength.cpp"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
