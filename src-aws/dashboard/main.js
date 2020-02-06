@@ -1,4 +1,4 @@
-const BASE_URL = '***REMOVED***';
+const BASE_URL = '*** YOUR GRAPHQL ENDPOINT HERE ***';
 let data = [];
 let chart;
 let animateDuration = 1500;

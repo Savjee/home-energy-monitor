@@ -11,7 +11,7 @@ export class EnergyService {
   /**
    * The URL to the main GraphQL API. This will be used to make all requests.
    */
-  private BASE_URL = "***REMOVED***";
+  private BASE_URL = "*** YOUR GRAPHQL ENDPOINT HERE ***";
 
   private pendingRequests = [];
 
