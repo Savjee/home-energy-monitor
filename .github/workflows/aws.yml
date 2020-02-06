@@ -24,7 +24,7 @@ jobs:
       run: |
         cd src-aws
         npm ci
-        npm install -g serverless
+        npm install -g serverless mocha
       env:
         CI: true
     - name: package
