@@ -15,6 +15,10 @@
 #include "tasks/wifi-update-signalstrength.h"
 #include "tasks/measure-electricity.h"
 
+#if HA_ENABLED == true
+    #include "tasks/mqtt-home-assistant.h"
+#endif
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
 EnergyMonitor emon1;
@@ -134,7 +138,25 @@ void setup()
     NULL              // Task handle
   );
 
+  #if HA_ENABLED == true
+    xTaskCreate(
+      HADiscovery,
+      "MQTT-HA Discovery",  // Task name
+      10000,                // Stack size (bytes)
+      NULL,                 // Parameter
+      5,                    // Task priority
+      NULL                  // Task handle
+    );
 
+    xTaskCreate(
+      keepHAConnectionAlive,
+      "MQTT-HA Connect",
+      10000,
+      NULL,
+      4,
+      NULL
+    );
+  #endif
 }
 
 void loop()
