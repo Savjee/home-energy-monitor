@@ -33,7 +33,12 @@ This project consists out of multiple components:
 
 ## Video explanation
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ah3ezprtgmc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<div align="center">
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/ah3ezprtgmc/0.jpg)](https://www.youtube.com/watch?v=ah3ezprtgmc)
+
+*[https://www.youtube.com/watch?v=ah3ezprtgmc](https://www.youtube.com/watch?v=ah3ezprtgmc)*
+</div>
 
 
 ## Screenshots
