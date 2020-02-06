@@ -4,7 +4,7 @@
     </a>
 </p>
 
-<h3 align="center">Home Energy Monitor</h3>
+<h3 align="center">Home Energy Monitor (v2)</h3>
 
 <div align="center">
 
