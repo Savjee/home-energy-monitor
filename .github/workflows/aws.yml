@@ -1,0 +1,33 @@
+name: aws
+
+on:
+  pull_request:
+  push:
+#    paths:
+#      - 'src-aws/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install
+      run: |
+        cd src-aws
+        npm ci
+        npm install -g serverless
+      env:
+        CI: true
+    - name: package
+      run: |
+        cd src-aws
+        serverless package
