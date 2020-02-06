@@ -69,10 +69,10 @@
  * Wether or not you want to enable Home Assistant integration
  */
 #define HA_ENABLED false
-#define HA_ADDRESS "***REMOVED***"
+#define HA_ADDRESS "*** YOUR HOME ASSISTANT IP ADDRESSS ***"
 #define HA_PORT 8883
-#define HA_USER "mqtt"
-#define HA_PASSWORD "***REMOVED***"
+#define HA_USER "*** MQTT USER ***"
+#define HA_PASSWORD "*** MQTT PASSWORD ***"
 
 // Check which core Arduino is running on. This is done because updating the 
 // display only works from the Arduino core.
