@@ -12,7 +12,7 @@
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/Savjee/home-energy-monitor.svg)](https://github.com/Savjee/home-energy-monitor/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
-**⚠️ This is a work in progress. Only the ESP32 firmware is considered stable.**
+**⚠️ This is a work in progress. By no means is this production ready.**
 </div>
 
 ---
@@ -40,13 +40,29 @@ This project consists out of multiple components:
 *[https://www.youtube.com/watch?v=ah3ezprtgmc](https://www.youtube.com/watch?v=ah3ezprtgmc)*
 </div>
 
+Read my blog post for more instructions: [https://savjee.be/2019/07/Home-Energy-Monitor-ESP32-CT-Sensor-Emonlib/](https://savjee.be/2019/07/Home-Energy-Monitor-ESP32-CT-Sensor-Emonlib/)
+
+## Cloud Architecture
+
+This is the cloud architecture that powers the energy meter and the app:
+
+![AWS Cloud Architecture](https://savjee.github.io/home-energy-monitor/readme-images/architecture.png)
+
+In a nutshell:
+* The ESP32 has a MQTT connection with AWS IoT Core
+* Every 30 seconds, 30 measurements are sent to AWS
+* These measurements are stored in DynamoDB (IoT Rule)
+* Once a day, all readings from the previous day are archived to S3
+* A GraphQL API (hosted on Lambda) exposes the data stored in DynamoDB
 
 ## Screenshots
 
 Web dashboard, built on top of the GraphQL API:
+
 ![Screenshot Web Dashboard](https://savjee.github.io/home-energy-monitor/readme-images/web-dashboard.png)
 
 What is displayed on the ESP32 OLED display:
+
 ![Screenshot ESP32 OLED](https://savjee.github.io/home-energy-monitor/readme-images/esp32-oled.jpg)
 
 
