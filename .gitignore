@@ -5,3 +5,4 @@ node_modules
 src-esp32/certificates/*.pem
 src-esp32/certificates/*.crt
 src-esp32/certificates/*.key
+.vscode
