@@ -3,8 +3,8 @@ name: aws
 on:
   pull_request:
   push:
-#    paths:
-#      - 'src-aws/**'
+   paths:
+     - 'src-aws/**'
 
 jobs:
   build:
