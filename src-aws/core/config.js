@@ -2,10 +2,10 @@ module.exports.config = {
 	deviceName: 'xd-home-energy-monitor-2',
 	
 	dynamoDb: {
-		table: 'xd-home-energy-monitor',
+		table: process.env.DYNAMO_DB_TABLE,
 	},
 
 	s3: {
-		bucket: 'xd-home-energy-monitor-datastore'
+		bucket: process.env.S3_STORAGE_BUCKET
 	}
 };

@@ -12,6 +12,8 @@ provider:
 
   environment:
     TZ: Europe/Brussels
+    DYNAMO_DB_TABLE: !Ref dynamoDataStore
+    S3_STORAGE_BUCKET: !Ref datastoreReadings
 
   apiGateway:
     minimumCompressionSize: 1024
