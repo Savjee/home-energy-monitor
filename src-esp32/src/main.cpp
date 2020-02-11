@@ -68,7 +68,7 @@ void setup()
   xTaskCreatePinnedToCore(
     keepWiFiAlive,
     "keepWiFiAlive",  // Task name
-    20000,            // Stack size (bytes)
+    15000,            // Stack size (bytes)
     NULL,             // Parameter
     1,                // Task priority
     NULL,             // Task handle
@@ -95,7 +95,7 @@ void setup()
   xTaskCreatePinnedToCore(
     updateDisplay,
     "UpdateDisplay",  // Task name
-    20000,            // Stack size (bytes)
+    10000,            // Stack size (bytes)
     NULL,             // Parameter
     3,                // Task priority
     NULL,             // Task handle
@@ -108,7 +108,7 @@ void setup()
   xTaskCreate(
     measureElectricity,
     "Measure electricity",  // Task name
-    10000,                  // Stack size (bytes)
+    5000,                  // Stack size (bytes)
     NULL,                   // Parameter
     4,                      // Task priority
     NULL                    // Task handle
@@ -142,7 +142,7 @@ void setup()
     xTaskCreate(
       HADiscovery,
       "MQTT-HA Discovery",  // Task name
-      10000,                // Stack size (bytes)
+      5000,                // Stack size (bytes)
       NULL,                 // Parameter
       5,                    // Task priority
       NULL                  // Task handle
@@ -151,7 +151,7 @@ void setup()
     xTaskCreate(
       keepHAConnectionAlive,
       "MQTT-HA Connect",
-      10000,
+      5000,
       NULL,
       4,
       NULL
