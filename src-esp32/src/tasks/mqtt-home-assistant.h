@@ -7,7 +7,7 @@
 #include "../config/config.h"
 
 WiFiClientSecure HA_net;
-MQTTClient HA_mqtt;
+MQTTClient HA_mqtt(1024);
 
 extern short measurements[];
 
@@ -64,7 +64,7 @@ void HADiscovery(void * parameter){
             continue;
         }
 
-        Serial.println("HA auto discovery sending:");
+        Serial.println("[MQTT] HA sending auto discovery");
 
         String msg = "{";
             msg.concat("\"name\": \"" DEVICE_NAME "\",");
@@ -82,7 +82,6 @@ void HADiscovery(void * parameter){
             msg.concat("}");
         msg.concat("}");
 
-        Serial.println("[MQTT] HA publish: " + msg);
         HA_mqtt.publish("homeassistant/sensor/" DEVICE_NAME "/config", msg);
         vTaskDelay(15 * 60 * 1000 / portTICK_PERIOD_MS);
     }
@@ -90,7 +89,7 @@ void HADiscovery(void * parameter){
 
 void sendEnergyToHA(void * parameter){
     if(!HA_mqtt.connected()){
-      Serial.println("Can't send to HA without MQTT. Abort.");
+      Serial.println("[MQTT] Can't send to HA without MQTT. Abort.");
       vTaskDelete(NULL);
     }
 
@@ -98,7 +97,7 @@ void sendEnergyToHA(void * parameter){
         msg.concat(measurements[LOCAL_MEASUREMENTS - 1]);
     msg.concat("}");
 
-    Serial.print("HA: ");
+    Serial.print("[MQTT] HA publish: ");
     Serial.println(msg);
 
     HA_mqtt.publish("homeassistant/sensor/" DEVICE_NAME "/state", msg);

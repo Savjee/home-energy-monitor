@@ -8,6 +8,10 @@
 #include "../config/enums.h"
 #include "mqtt-aws.h"
 
+#if HA_ENABLED == true
+  #include "mqtt-home-assistant.h"
+#endif
+
 extern DisplayValues gDisplayValues;
 extern EnergyMonitor emon1;
 extern short measurements[];
