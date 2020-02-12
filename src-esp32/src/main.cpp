@@ -64,7 +64,7 @@ void setup()
   xTaskCreatePinnedToCore(
     keepWiFiAlive,
     "keepWiFiAlive",  // Task name
-    15000,            // Stack size (bytes)
+    5000,            // Stack size (bytes)
     NULL,             // Parameter
     1,                // Task priority
     NULL,             // Task handle
@@ -77,7 +77,7 @@ void setup()
   xTaskCreate(
     keepAWSConnectionAlive,
     "MQTT-AWS",      // Task name
-    10000,            // Stack size (bytes)
+    5000,            // Stack size (bytes)
     NULL,             // Parameter
     5,                // Task priority
     NULL              // Task handle
