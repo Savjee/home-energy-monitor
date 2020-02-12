@@ -14,13 +14,13 @@
 
 extern DisplayValues gDisplayValues;
 extern EnergyMonitor emon1;
-extern short measurements[];
-extern short measureIndex;
+extern unsigned short measurements[];
+extern unsigned char measureIndex;
 
 void measureElectricity(void * parameter)
 {
     for(;;){
-      Serial.println("[ENERGY] Measuring...");
+      serial_println("[ENERGY] Measuring...");
       long start = millis();
 
       double amps = emon1.calcIrms(1480);

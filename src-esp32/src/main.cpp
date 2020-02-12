@@ -24,19 +24,14 @@ DisplayValues gDisplayValues;
 EnergyMonitor emon1;
 
 // Place to store local measurements before sending them off to AWS
-short measurements[LOCAL_MEASUREMENTS];
-short measureIndex = 0;
-
-void goToDeepSleep()
-{
-  Serial.println("Going to sleep...");
-  esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * uS_TO_S_FACTOR);
-  esp_deep_sleep_start();
-}
+unsigned short measurements[LOCAL_MEASUREMENTS];
+unsigned char measureIndex = 0;
 
 void setup()
 {
-  Serial.begin(115200);
+  #if DEBUG == true
+    Serial.begin(115200);
+  #endif 
 
   // Setup the ADC
   adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
@@ -48,8 +43,9 @@ void setup()
 
   // Initialize the display
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    goToDeepSleep();
+    serial_println(F("SSD1306 allocation failed"));
+    delay(10*1000);
+    ESP.restart();
   }
 
   // Init the display
@@ -68,7 +64,7 @@ void setup()
   xTaskCreatePinnedToCore(
     keepWiFiAlive,
     "keepWiFiAlive",  // Task name
-    15000,            // Stack size (bytes)
+    5000,            // Stack size (bytes)
     NULL,             // Parameter
     1,                // Task priority
     NULL,             // Task handle
@@ -81,7 +77,7 @@ void setup()
   xTaskCreate(
     keepAWSConnectionAlive,
     "MQTT-AWS",      // Task name
-    10000,            // Stack size (bytes)
+    5000,            // Stack size (bytes)
     NULL,             // Parameter
     5,                // Task priority
     NULL              // Task handle

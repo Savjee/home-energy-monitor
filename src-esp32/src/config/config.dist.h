@@ -2,6 +2,11 @@
 #define CONFIG
 
 /**
+ * Set this to false to disable Serial logging
+ */
+#define DEBUG true
+
+/**
  * The name of this device (as defined in the AWS IOT console).
  * Also used to set the hostname on the network
  */
@@ -32,6 +37,12 @@
 #define WIFI_TIMEOUT 20000 // 20 seconds
 
 /**
+ * How long should we wait after a failed WiFi connection
+ * before trying to set one up again.
+ */
+#define WIFI_RECOVER_TIME_MS 20000 // 20 seconds
+
+/**
  * Dimensions of the OLED display attached to the ESP
  */
 #define SCREEN_WIDTH 128
@@ -42,12 +53,6 @@
  */
 #define emonTxV3 1
 
-/**
- * To recover from errors we send the ESP into deep sleep
- * for about 30 seconds and let it wake up again.
- */
-#define DEEP_SLEEP_TIME 30
-#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
 
 /**
  * Local measurements

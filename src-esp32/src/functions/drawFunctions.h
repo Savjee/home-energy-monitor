@@ -8,7 +8,7 @@
 
 extern Adafruit_SSD1306 display;
 extern DisplayValues gDisplayValues;
-extern short measureIndex;
+extern unsigned char measureIndex;
 
 void drawTime(){
   display.setTextSize(1);

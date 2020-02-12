@@ -6,11 +6,13 @@
 #include <MQTTClient.h>
 #include "../config/config.h"
 
-extern short measureIndex;
-extern short measurements[];
+extern unsigned char measureIndex;
+extern unsigned short measurements[];
+
+#define AWS_MAX_MSG_SIZE_BYTES 300
 
 WiFiClientSecure AWS_net;
-MQTTClient AWS_mqtt = MQTTClient(512);
+MQTTClient AWS_mqtt = MQTTClient(AWS_MAX_MSG_SIZE_BYTES);
 
 extern const uint8_t aws_root_ca_pem_start[] asm("_binary_certificates_amazonrootca1_pem_start");
 extern const uint8_t aws_root_ca_pem_end[] asm("_binary_certificates_amazonrootca1_pem_end");
@@ -39,7 +41,7 @@ void keepAWSConnectionAlive(void * parameter){
         AWS_net.setCertificate((const char *) certificate_pem_crt_start);
         AWS_net.setPrivateKey((const char *) private_pem_key_start);
 
-        Serial.println("[MQTT] Connecting to AWS...");
+        serial_println(F("[MQTT] Connecting to AWS..."));
         AWS_mqtt.begin(AWS_IOT_ENDPOINT, 8883, AWS_net);
 
         long startAttemptTime = millis();
@@ -51,11 +53,11 @@ void keepAWSConnectionAlive(void * parameter){
         }
 
         if(!AWS_mqtt.connected()){
-            Serial.println("[MQTT] AWS connection timeout. Retry in 30s.");
+            serial_println(F("[MQTT] AWS connection timeout. Retry in 30s."));
             vTaskDelay(30000 / portTICK_PERIOD_MS);
         }
 
-        Serial.println("[MQTT] AWS Connected!");
+        serial_println(F("[MQTT] AWS Connected!"));
     }
 }
 
@@ -65,23 +67,25 @@ void keepAWSConnectionAlive(void * parameter){
  */
 void uploadMeasurementsToAWS(void * parameter){
     if(!WiFi.isConnected() || !AWS_mqtt.connected()){
-        Serial.println("[MQTT] AWS: no connection. Discarding data..");
+        serial_println("[MQTT] AWS: no connection. Discarding data..");
         measureIndex = 0;
         vTaskDelete(NULL);
     }
 
     if (measureIndex == LOCAL_MEASUREMENTS){
-        String msg = "{\"readings\": [";
+        char msg[AWS_MAX_MSG_SIZE_BYTES];
+        strcpy(msg, "{\"readings\":[");
 
         for (short i = 0; i < LOCAL_MEASUREMENTS-1; i++){
-            msg += measurements[i];
-            msg += ",";
+            strcat(msg, String(measurements[i]).c_str());
+            strcat(msg, ",");
         }
 
-        msg += measurements[LOCAL_MEASUREMENTS-1];
-        msg += "]}";
+        strcat(msg, String(measurements[LOCAL_MEASUREMENTS-1]).c_str());
+        strcat(msg, "]}");
     
-        Serial.println("[MQTT] AWS publish: " + msg);
+        serial_print("[MQTT] AWS publish: ");
+        serial_println(msg);
         AWS_mqtt.publish(AWS_IOT_TOPIC, msg);
 
         measureIndex = 0;
