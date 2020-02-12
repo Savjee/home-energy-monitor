@@ -41,7 +41,7 @@ void keepWiFiAlive(void * parameter){
         // Make sure that we're actually connected, otherwise go to deep sleep
         if(WiFi.status() != WL_CONNECTED){
             serial_println(F("[WIFI] FAILED"));
-            vTaskDelay(DEEP_SLEEP_TIME * 1000 / portTICK_PERIOD_MS);
+            vTaskDelay(WIFI_RECOVER_TIME_MS / portTICK_PERIOD_MS);
         }
 
         serial_println(F("[WIFI] Connected: " + WiFi.localIP()));
