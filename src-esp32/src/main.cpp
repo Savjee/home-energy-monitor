@@ -24,13 +24,6 @@ DisplayValues gDisplayValues;
 EnergyMonitor emon1;
 
 // Place to store local measurements before sending them off to AWS
-
-void goToDeepSleep()
-{
-  Serial.println("Going to sleep...");
-  esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * uS_TO_S_FACTOR);
-  esp_deep_sleep_start();
-}
 unsigned short measurements[LOCAL_MEASUREMENTS];
 unsigned char measureIndex = 0;
 
@@ -50,8 +43,9 @@ void setup()
 
   // Initialize the display
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false)) {
-    goToDeepSleep();
     serial_println(F("SSD1306 allocation failed"));
+    delay(10*1000);
+    ESP.restart();
   }
 
   // Init the display
