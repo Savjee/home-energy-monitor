@@ -9,8 +9,10 @@
 extern unsigned char measureIndex;
 extern unsigned short measurements[];
 
+#define AWS_MAX_MSG_SIZE_BYTES 300
+
 WiFiClientSecure AWS_net;
-MQTTClient AWS_mqtt = MQTTClient(512);
+MQTTClient AWS_mqtt = MQTTClient(AWS_MAX_MSG_SIZE_BYTES);
 
 extern const uint8_t aws_root_ca_pem_start[] asm("_binary_certificates_amazonrootca1_pem_start");
 extern const uint8_t aws_root_ca_pem_end[] asm("_binary_certificates_amazonrootca1_pem_end");
@@ -71,15 +73,16 @@ void uploadMeasurementsToAWS(void * parameter){
     }
 
     if (measureIndex == LOCAL_MEASUREMENTS){
-        String msg = "{\"readings\": [";
+        char msg[AWS_MAX_MSG_SIZE_BYTES];
+        strcpy(msg, "{\"readings\":[");
 
         for (short i = 0; i < LOCAL_MEASUREMENTS-1; i++){
-            msg += measurements[i];
-            msg += ",";
+            strcat(msg, String(measurements[i]).c_str());
+            strcat(msg, ",");
         }
 
-        msg += measurements[LOCAL_MEASUREMENTS-1];
-        msg += "]}";
+        strcat(msg, String(measurements[LOCAL_MEASUREMENTS-1]).c_str());
+        strcat(msg, "]}");
     
         serial_print("[MQTT] AWS publish: ");
         serial_println(msg);
