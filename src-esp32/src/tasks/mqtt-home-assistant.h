@@ -11,6 +11,22 @@ MQTTClient HA_mqtt(1024);
 
 extern unsigned short measurements[];
 
+const char* PROGMEM HA_discovery_msg = "{"
+        "\"name\":\"" DEVICE_NAME "\","
+        "\"device_class\":\"power\","
+        "\"unit_of_measurement\":\"W\","
+        "\"icon\":\"mdi:transmission-tower\","
+        "\"state_topic\":\"homeassistant/sensor/" DEVICE_NAME "/state\","
+        "\"value_template\":\"{{ value_json.power}}\","
+        "\"device\": {"
+            "\"name\": \"" DEVICE_NAME "\","
+            "\"sw_version\": \"2.0\","
+            "\"model\": \"HW V2\","
+            "\"manufacturer\": \"Xavier Decuyper\","
+            "\"identifiers\": [\"" DEVICE_NAME "\"]"
+        "}"
+    "}";
+
 /**
  * Established a connection to Home Assistant MQTT broker.
  * 
@@ -64,25 +80,8 @@ void HADiscovery(void * parameter){
             continue;
         }
 
-        Serial.println("[MQTT] HA sending auto discovery");
-
-        String msg = "{";
-            msg.concat("\"name\": \"" DEVICE_NAME "\",");
-            msg.concat("\"device_class\": \"power\",");
-            msg.concat("\"unit_of_measurement\": \"W\",");
-            msg.concat("\"icon\": \"mdi:transmission-tower\",");
-            msg.concat("\"state_topic\": \"homeassistant/sensor/" DEVICE_NAME "/state\",");
-            msg.concat("\"value_template\": \"{{ value_json.power}}\",");
-            msg.concat("\"device\": {");
-                msg.concat("\"name\": \"" DEVICE_NAME "\",");
-                msg.concat("\"sw_version\": \"2.0\",");
-                msg.concat("\"model\": \"HW V2\",");
-                msg.concat("\"manufacturer\": \"Xavier Decuyper\",");
-                msg.concat("\"identifiers\": [\"" DEVICE_NAME "\"]");
-            msg.concat("}");
-        msg.concat("}");
-
-        HA_mqtt.publish("homeassistant/sensor/" DEVICE_NAME "/config", msg);
+        serial_println(F("[MQTT] HA sending auto discovery"));
+        HA_mqtt.publish(F("homeassistant/sensor/" DEVICE_NAME "/config"), HA_discovery_msg);
         vTaskDelay(15 * 60 * 1000 / portTICK_PERIOD_MS);
     }
 }
