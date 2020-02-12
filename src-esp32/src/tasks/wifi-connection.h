@@ -25,7 +25,7 @@ void keepWiFiAlive(void * parameter){
             continue;
         }
 
-        Serial.println("[WIFI] Connecting");
+        serial_println(F("[WIFI] Connecting"));
         gDisplayValues.currentState = CONNECTING_WIFI;
 
         WiFi.mode(WIFI_STA);
@@ -40,11 +40,11 @@ void keepWiFiAlive(void * parameter){
 
         // Make sure that we're actually connected, otherwise go to deep sleep
         if(WiFi.status() != WL_CONNECTED){
-            Serial.println("[WIFI] FAILED");
+            serial_println(F("[WIFI] FAILED"));
             vTaskDelay(DEEP_SLEEP_TIME * 1000 / portTICK_PERIOD_MS);
         }
 
-        Serial.println("[WIFI] Connected: " + WiFi.localIP());
+        serial_println(F("[WIFI] Connected: " + WiFi.localIP()));
         gDisplayValues.currentState = UP;
     }
 }

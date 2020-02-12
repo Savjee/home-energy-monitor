@@ -1,6 +1,8 @@
 #ifndef CONFIG
 #define CONFIG
 
+#define DEBUG true
+
 /**
  * The name of this device (as defined in the AWS IOT console).
  * Also used to set the hostname on the network

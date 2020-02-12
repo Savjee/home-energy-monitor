@@ -36,7 +36,9 @@ void goToDeepSleep()
 
 void setup()
 {
-  Serial.begin(115200);
+  #if DEBUG == true
+    Serial.begin(115200);
+  #endif 
 
   // Setup the ADC
   adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
@@ -48,8 +50,8 @@ void setup()
 
   // Initialize the display
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false)) {
-    Serial.println(F("SSD1306 allocation failed"));
     goToDeepSleep();
+    serial_println(F("SSD1306 allocation failed"));
   }
 
   // Init the display

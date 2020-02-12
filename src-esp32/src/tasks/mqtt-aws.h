@@ -39,7 +39,7 @@ void keepAWSConnectionAlive(void * parameter){
         AWS_net.setCertificate((const char *) certificate_pem_crt_start);
         AWS_net.setPrivateKey((const char *) private_pem_key_start);
 
-        Serial.println("[MQTT] Connecting to AWS...");
+        serial_println(F("[MQTT] Connecting to AWS..."));
         AWS_mqtt.begin(AWS_IOT_ENDPOINT, 8883, AWS_net);
 
         long startAttemptTime = millis();
@@ -51,11 +51,11 @@ void keepAWSConnectionAlive(void * parameter){
         }
 
         if(!AWS_mqtt.connected()){
-            Serial.println("[MQTT] AWS connection timeout. Retry in 30s.");
+            serial_println(F("[MQTT] AWS connection timeout. Retry in 30s."));
             vTaskDelay(30000 / portTICK_PERIOD_MS);
         }
 
-        Serial.println("[MQTT] AWS Connected!");
+        serial_println(F("[MQTT] AWS Connected!"));
     }
 }
 
@@ -65,7 +65,7 @@ void keepAWSConnectionAlive(void * parameter){
  */
 void uploadMeasurementsToAWS(void * parameter){
     if(!WiFi.isConnected() || !AWS_mqtt.connected()){
-        Serial.println("[MQTT] AWS: no connection. Discarding data..");
+        serial_println("[MQTT] AWS: no connection. Discarding data..");
         measureIndex = 0;
         vTaskDelete(NULL);
     }
@@ -81,7 +81,8 @@ void uploadMeasurementsToAWS(void * parameter){
         msg += measurements[LOCAL_MEASUREMENTS-1];
         msg += "]}";
     
-        Serial.println("[MQTT] AWS publish: " + msg);
+        serial_print("[MQTT] AWS publish: ");
+        serial_println(msg);
         AWS_mqtt.publish(AWS_IOT_TOPIC, msg);
 
         measureIndex = 0;

@@ -32,7 +32,7 @@ void keepHAConnectionAlive(void * parameter){
             continue;
         }
 
-        Serial.println("[MQTT] Connecting to HA...");
+        serial_println(F("[MQTT] Connecting to HA..."));
         HA_mqtt.begin(HA_ADDRESS, HA_PORT, HA_net);
 
         long startAttemptTime = millis();
@@ -44,11 +44,11 @@ void keepHAConnectionAlive(void * parameter){
         }
 
         if(!HA_mqtt.connected()){
-            Serial.println("[MQTT] HA connection failed. Waiting 30s..");
+            serial_println(F("[MQTT] HA connection failed. Waiting 30s.."));
             vTaskDelay(30000 / portTICK_PERIOD_MS);
         }
 
-        Serial.println("[MQTT] HA Connected!");
+        serial_println(F("[MQTT] HA Connected!"));
     }
 }
 
@@ -59,7 +59,7 @@ void keepHAConnectionAlive(void * parameter){
 void HADiscovery(void * parameter){
     for(;;){
         if(!HA_mqtt.connected()){
-            Serial.println("[MQTT] HA: no MQTT connection.");
+            serial_println(F("[MQTT] HA: no MQTT connection."));
             vTaskDelay(30 * 1000 / portTICK_PERIOD_MS);
             continue;
         }
@@ -89,7 +89,7 @@ void HADiscovery(void * parameter){
 
 void sendEnergyToHA(void * parameter){
     if(!HA_mqtt.connected()){
-      Serial.println("[MQTT] Can't send to HA without MQTT. Abort.");
+      serial_println(F("[MQTT] Can't send to HA without MQTT. Abort."));
       vTaskDelete(NULL);
     }
 
@@ -97,8 +97,8 @@ void sendEnergyToHA(void * parameter){
         msg.concat(measurements[LOCAL_MEASUREMENTS - 1]);
     msg.concat("}");
 
-    Serial.print("[MQTT] HA publish: ");
-    Serial.println(msg);
+    serial_print(F("[MQTT] HA publish: "));
+    serial_println(msg);
 
     HA_mqtt.publish("homeassistant/sensor/" DEVICE_NAME "/state", msg);
 

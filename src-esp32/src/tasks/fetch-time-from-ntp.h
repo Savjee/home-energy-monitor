@@ -23,14 +23,14 @@ void fetchTimeFromNTP(void * parameter){
             continue;
         }
 
-        Serial.println("[NTP] Updating...");
+        serial_println("[NTP] Updating...");
         timeClient.update();
 
         String timestring = timeClient.getFormattedTime();
         short tIndex = timestring.indexOf("T");
         gDisplayValues.time = timestring.substring(tIndex + 1, timestring.length() -3);
         
-        Serial.println("[NTP] Done");
+        serial_println("[NTP] Done");
 
         // Sleep for a minute before checking again
         vTaskDelay(60000 / portTICK_PERIOD_MS);
