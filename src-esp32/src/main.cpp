@@ -24,8 +24,6 @@ DisplayValues gDisplayValues;
 EnergyMonitor emon1;
 
 // Place to store local measurements before sending them off to AWS
-short measurements[LOCAL_MEASUREMENTS];
-short measureIndex = 0;
 
 void goToDeepSleep()
 {
@@ -33,6 +31,8 @@ void goToDeepSleep()
   esp_sleep_enable_timer_wakeup(DEEP_SLEEP_TIME * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
 }
+unsigned short measurements[LOCAL_MEASUREMENTS];
+unsigned char measureIndex = 0;
 
 void setup()
 {

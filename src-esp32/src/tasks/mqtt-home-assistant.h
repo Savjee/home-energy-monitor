@@ -9,7 +9,7 @@
 WiFiClientSecure HA_net;
 MQTTClient HA_mqtt(1024);
 
-extern short measurements[];
+extern unsigned short measurements[];
 
 /**
  * Established a connection to Home Assistant MQTT broker.

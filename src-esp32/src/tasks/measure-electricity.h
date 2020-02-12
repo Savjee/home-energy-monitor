@@ -14,8 +14,8 @@
 
 extern DisplayValues gDisplayValues;
 extern EnergyMonitor emon1;
-extern short measurements[];
-extern short measureIndex;
+extern unsigned short measurements[];
+extern unsigned char measureIndex;
 
 void measureElectricity(void * parameter)
 {

@@ -6,8 +6,8 @@
 #include <MQTTClient.h>
 #include "../config/config.h"
 
-extern short measureIndex;
-extern short measurements[];
+extern unsigned char measureIndex;
+extern unsigned short measurements[];
 
 WiFiClientSecure AWS_net;
 MQTTClient AWS_mqtt = MQTTClient(512);
