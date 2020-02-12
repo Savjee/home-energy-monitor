@@ -92,14 +92,14 @@ void sendEnergyToHA(void * parameter){
       vTaskDelete(NULL);
     }
 
-    String msg = "{\"power\": ";
+    String msg = F("{\"power\":");
         msg.concat(measurements[LOCAL_MEASUREMENTS - 1]);
     msg.concat("}");
 
     serial_print(F("[MQTT] HA publish: "));
     serial_println(msg);
 
-    HA_mqtt.publish("homeassistant/sensor/" DEVICE_NAME "/state", msg);
+    HA_mqtt.publish(F("homeassistant/sensor/" DEVICE_NAME "/state"), msg);
 
     // Task is done!
     vTaskDelete(NULL);
