@@ -39,7 +39,7 @@ void keepHAConnectionAlive(void * parameter){
         // When we are connected, loop the MQTT client and sleep for 0,5s
         if(HA_mqtt.connected()){
             HA_mqtt.loop();
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+            vTaskDelay(250 / portTICK_PERIOD_MS);
             continue;
         }
 
