@@ -92,9 +92,10 @@ void sendEnergyToHA(void * parameter){
       vTaskDelete(NULL);
     }
 
-    String msg = F("{\"power\":");
-        msg.concat(measurements[LOCAL_MEASUREMENTS - 1]);
-    msg.concat("}");
+    char msg[30];
+    strcpy(msg, "{\"power\":");
+        strcat(msg, String(measurements[LOCAL_MEASUREMENTS-1]).c_str());
+    strcat(msg, "}");
 
     serial_print("[MQTT] HA publish: ");
     serial_println(msg);
