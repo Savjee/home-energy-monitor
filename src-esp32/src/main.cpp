@@ -14,10 +14,7 @@
 #include "tasks/wifi-connection.h"
 #include "tasks/wifi-update-signalstrength.h"
 #include "tasks/measure-electricity.h"
-
-#if HA_ENABLED == true
-    #include "tasks/mqtt-home-assistant.h"
-#endif
+#include "tasks/mqtt-home-assistant.h"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 DisplayValues gDisplayValues;
@@ -115,14 +112,16 @@ void setup()
   // ----------------------------------------------------------------
   // TASK: update time from NTP server.
   // ----------------------------------------------------------------
-  xTaskCreate(
-    fetchTimeFromNTP,
-    "Update NTP time",
-    5000,            // Stack size (bytes)
-    NULL,             // Parameter
-    1,                // Task priority
-    NULL              // Task handle
-  );
+  #if NTP_TIME_SYNC_ENABLED == true
+    xTaskCreate(
+      fetchTimeFromNTP,
+      "Update NTP time",
+      5000,            // Stack size (bytes)
+      NULL,             // Parameter
+      1,                // Task priority
+      NULL              // Task handle
+    );
+  #endif
 
   // ----------------------------------------------------------------
   // TASK: update WiFi signal strength
