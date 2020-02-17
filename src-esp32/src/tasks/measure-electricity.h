@@ -7,10 +7,7 @@
 #include "../config/config.h"
 #include "../config/enums.h"
 #include "mqtt-aws.h"
-
-#if HA_ENABLED == true
-  #include "mqtt-home-assistant.h"
-#endif
+#include "mqtt-home-assistant.h"
 
 extern DisplayValues gDisplayValues;
 extern EnergyMonitor emon1;
@@ -33,14 +30,16 @@ void measureElectricity(void * parameter)
       measureIndex++;
 
       if(measureIndex == LOCAL_MEASUREMENTS){
-          xTaskCreate(
-            uploadMeasurementsToAWS,
-            "Upload measurements to AWS",
-            10000,             // Stack size (bytes)
-            NULL,             // Parameter
-            5,                // Task priority
-            NULL              // Task handle
-          );
+          #if AWS_ENABLED == true
+            xTaskCreate(
+              uploadMeasurementsToAWS,
+              "Upload measurements to AWS",
+              10000,             // Stack size (bytes)
+              NULL,             // Parameter
+              5,                // Task priority
+              NULL              // Task handle
+            );
+          #endif
 
           #if HA_ENABLED == true
             xTaskCreate(
@@ -54,6 +53,7 @@ void measureElectricity(void * parameter)
           #endif
       }
 
+      measureIndex = 0;
       long end = millis();
 
       // Schedule the task to run again in 1 second (while

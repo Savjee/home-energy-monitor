@@ -74,14 +74,16 @@ void setup()
   // ----------------------------------------------------------------
   // TASK: Connect to AWS & keep the connection alive.
   // ----------------------------------------------------------------
-  xTaskCreate(
-    keepAWSConnectionAlive,
-    "MQTT-AWS",      // Task name
-    5000,            // Stack size (bytes)
-    NULL,             // Parameter
-    5,                // Task priority
-    NULL              // Task handle
-  );
+  #if AWS_ENABLED == true
+    xTaskCreate(
+      keepAWSConnectionAlive,
+      "MQTT-AWS",      // Task name
+      5000,            // Stack size (bytes)
+      NULL,             // Parameter
+      5,                // Task priority
+      NULL              // Task handle
+    );
+  #endif
 
   // ----------------------------------------------------------------
   // TASK: Update the display every second

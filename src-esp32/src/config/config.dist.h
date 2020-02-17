@@ -64,6 +64,7 @@
  * The MQTT endpoint of the service we should connect to and receive messages
  * from.
  */
+#define AWS_ENABLED true
 #define AWS_IOT_ENDPOINT "**** YOUR AWS IOT ENDPOINT ****"
 #define AWS_IOT_TOPIC "**** YOUR AWS IOT RULE ARN ****"
 
