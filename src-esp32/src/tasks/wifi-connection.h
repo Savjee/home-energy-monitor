@@ -44,7 +44,8 @@ void keepWiFiAlive(void * parameter){
             vTaskDelay(WIFI_RECOVER_TIME_MS / portTICK_PERIOD_MS);
         }
 
-        serial_println(F("[WIFI] Connected: " + WiFi.localIP()));
+        serial_print(F("[WIFI] Connected: "));
+        serial_println(WiFi.localIP());
         gDisplayValues.currentState = UP;
     }
 }
