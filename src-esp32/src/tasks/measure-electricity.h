@@ -51,9 +51,10 @@ void measureElectricity(void * parameter)
               NULL              // Task handle
             );
           #endif
+
+          measureIndex = 0;
       }
 
-      measureIndex = 0;
       long end = millis();
 
       // Schedule the task to run again in 1 second (while
