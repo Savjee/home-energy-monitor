@@ -143,10 +143,10 @@ resources:
           Description: "Forwards incoming sensor messages to DynamoDB for analysis"
           RuleDisabled: false
           Sql: >-
-            SELECT *, 
+            SELECT * ,
                   'reading-' + clientid() as primarykey, 
-                  (timestamp() / 1000) as sortkey,
-                  ((timestamp() / 1000) + 2592000) as ttl
+                  (timestamp() / 1000) as sortkey, 
+                  ((timestamp() / 1000) + 2592000) as ttl FROM '*** YOUR AWS IOT CORE THING ARN ***' 
 
     ###
     # Policy that defines what each sensor is allowed to do. On basic
