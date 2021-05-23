@@ -141,7 +141,12 @@ function processData(rawData){
 	const $todayKwh = document.getElementById('stats-kwh');
 	const $standbyPower = document.getElementById('stats-standby');
 	const $max = document.getElementById('stats-max');
+	const $lastreading = document.getElementById('last-reading');
 
+	var utcSeconds = rawData.data.realtime[rawData.data.realtime.length-1]["timestamp"]; // Get the latest UTC timestamp
+	var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
+	d.setUTCSeconds(utcSeconds); // Convert epoch to local timezone
+	$lastreading.innerHTML = d; // // Update HTML
 	const totalKwh = calculateKWH(data);
 
 	$current.innerHTML = data[data.length-1][1] + ' W';
