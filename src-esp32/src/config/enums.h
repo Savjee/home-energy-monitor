@@ -2,6 +2,8 @@
 #define ENUMS
 
 #include <Arduino.h>
+#include "config.dist.h"
+
 
 // The state in which the device can be. This mainly affects what
 // is drawn on the display.
